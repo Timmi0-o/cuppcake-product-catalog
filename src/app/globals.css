@@ -104,10 +104,14 @@ html.dark {
 
   body {
     @apply min-h-dvh bg-background font-sans text-foreground antialiased;
+    background-attachment: fixed;
+  }
+
+  /* Scope light gradient — never paint light wash under html.dark (FOUC) */
+  html:not(.dark) body {
     background-image:
       radial-gradient(ellipse 80% 50% at 50% -20%, oklch(0.92 0.03 152 / 0.55), transparent),
       linear-gradient(180deg, oklch(0.99 0.005 145), oklch(0.97 0.008 145));
-    background-attachment: fixed;
   }
 
   html.dark body,

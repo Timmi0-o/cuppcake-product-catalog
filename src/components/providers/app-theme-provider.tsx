@@ -1,22 +1,23 @@
-'use client';
+"use client";
 
+import { ClientThemeProvider } from "@wrksz/themes/client";
+import type { ReactNode } from "react";
 import {
   DEFAULT_THEME,
   THEME_LIST,
   THEME_STORAGE_KEY,
-  type IThemeValue,
-} from '@/constants/theme.constants';
-import { ClientThemeProvider } from '@wrksz/themes/client';
-import type { ReactNode } from 'react';
+} from "@/constants/theme.constants";
 
 type AppThemeProviderProps = {
   children: ReactNode;
-  initialTheme: IThemeValue;
+  cookieOptions?: {
+    domain?: string;
+  };
 };
 
 export function AppThemeProvider({
   children,
-  initialTheme,
+  cookieOptions,
 }: AppThemeProviderProps) {
   return (
     <ClientThemeProvider
@@ -26,8 +27,8 @@ export function AppThemeProvider({
       themes={[...THEME_LIST]}
       enableSystem={false}
       storage="hybrid"
-      initialTheme={initialTheme}
       disableTransitionOnChange
+      cookieOptions={cookieOptions}
     >
       {children}
     </ClientThemeProvider>

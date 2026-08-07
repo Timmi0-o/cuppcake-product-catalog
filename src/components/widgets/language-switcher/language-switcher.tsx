@@ -40,7 +40,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
 			role='group'
 			aria-label={t('label')}
 			className={cn(
-				'inline-flex items-center flex-col gap-0.5 rounded-full border border-border bg-card/90 p-1 shadow-sm backdrop-blur-sm',
+				'inline-flex items-center  gap-0.5 rounded-full border border-border bg-card/90 p-1 shadow-sm backdrop-blur-sm',
 				className,
 			)}
 		>

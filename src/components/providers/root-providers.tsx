@@ -1,23 +1,25 @@
-'use client';
+"use client";
 
-import { AuthProvider } from '@/components/providers/auth-provider.provider';
-import { AppThemeProvider } from '@/components/providers/app-theme-provider';
-import { QueryClientProviderWrapper } from '@/components/providers/query-client.provider';
-import { Toaster } from '@/components/shared/ui/sonner';
-import type { AppLocale } from '@/constants/locales';
-import type { IThemeValue } from '@/constants/theme.constants';
-import type { Session } from 'next-auth';
-import { NextIntlClientProvider } from 'next-intl';
-import type { AbstractIntlMessages } from 'next-intl';
-import type { ReactNode } from 'react';
+import type { Session } from "next-auth";
+import type { AbstractIntlMessages } from "next-intl";
+import { NextIntlClientProvider } from "next-intl";
+import type { ReactNode } from "react";
+import { AppThemeProvider } from "@/components/providers/app-theme-provider";
+import { AuthProvider } from "@/components/providers/auth-provider.provider";
+import { QueryClientProviderWrapper } from "@/components/providers/query-client.provider";
+import { ThemeStorageMigration } from "@/components/providers/theme-storage-migration";
+import { Toaster } from "@/components/shared/ui/sonner";
+import type { AppLocale } from "@/constants/locales";
 
 type RootProvidersProps = {
   children: ReactNode;
   locale: AppLocale;
   messages: AbstractIntlMessages;
   timeZone: string;
-  initialTheme: IThemeValue;
   session: Session | null;
+  cookieOptions?: {
+    domain?: string;
+  };
 };
 
 export function RootProviders({
@@ -25,23 +27,24 @@ export function RootProviders({
   locale,
   messages,
   timeZone,
-  initialTheme,
   session,
+  cookieOptions,
 }: RootProvidersProps) {
   return (
-    <AuthProvider session={session}>
-      <AppThemeProvider initialTheme={initialTheme}>
-        <QueryClientProviderWrapper>
-          <NextIntlClientProvider
-            locale={locale}
-            messages={messages}
-            timeZone={timeZone}
-          >
+    <AppThemeProvider cookieOptions={cookieOptions}>
+      <ThemeStorageMigration />
+      <NextIntlClientProvider
+        locale={locale}
+        messages={messages}
+        timeZone={timeZone}
+      >
+        <AuthProvider session={session}>
+          <QueryClientProviderWrapper>
             {children}
             <Toaster />
-          </NextIntlClientProvider>
-        </QueryClientProviderWrapper>
-      </AppThemeProvider>
-    </AuthProvider>
+          </QueryClientProviderWrapper>
+        </AuthProvider>
+      </NextIntlClientProvider>
+    </AppThemeProvider>
   );
 }
