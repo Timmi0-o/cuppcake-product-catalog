@@ -6,10 +6,11 @@ export const ProductsGetOneFiltersSchema = z.object({
 
 export const ProductsGetManyFiltersSchema = z.object({
   name: z.string().optional(),
+  search: z.string().optional(),
   categoryId: z.string().uuid().optional(),
   categorySlug: z.string().optional(),
+  page: z.number().int().min(1).optional(),
   limit: z.number().int().min(1).max(200).optional(),
-  offset: z.number().int().min(0).optional(),
   includeImages: z.boolean().optional(),
 });
 

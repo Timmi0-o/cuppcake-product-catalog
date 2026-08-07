@@ -3,5 +3,10 @@
   "emptyDescription": "В этой категории ещё нет товаров",
   "allCategories": "Все",
   "categoriesAriaLabel": "Категории",
-  "moreDetails": "Подробнее"
+  "searchAriaLabel": "Поиск товаров",
+  "searchPlaceholder": "Поиск по названию, описанию или категории",
+  "moreDetails": "Подробнее",
+  "loadError": "Не удалось загрузить товары",
+  "loadErrorDescription": "Проверьте соединение и попробуйте снова",
+  "retry": "Повторить"
 }

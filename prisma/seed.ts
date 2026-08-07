@@ -21,8 +21,30 @@ if (!connectionString) {
   throw new Error('DATABASE_URL is required');
 }
 
+function withSchemaSearchPath(value: string): string {
+  const url = new URL(value);
+  const schema = url.searchParams.get('schema');
+  if (!schema || schema === 'public') {
+    return value;
+  }
+  const existingOptions = url.searchParams.get('options') ?? '';
+  if (existingOptions.includes('search_path')) {
+    return value;
+  }
+  const searchPathOption = `-csearch_path=${schema}`;
+  url.searchParams.set(
+    'options',
+    existingOptions
+      ? `${existingOptions} ${searchPathOption}`
+      : searchPathOption,
+  );
+  return url.toString();
+}
+
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString }),
+  adapter: new PrismaPg({
+    connectionString: withSchemaSearchPath(connectionString),
+  }),
 });
 
 const CATEGORIES = [
@@ -131,82 +153,93 @@ async function main() {
 
   await clearProductUploadDirectory();
 
-  await prisma.$transaction(async (tx) => {
-    await tx.image.deleteMany({ where: { entityType: 'PRODUCT' } });
-    await tx.file.deleteMany({ where: { purpose: 'PRODUCT_IMAGE' } });
-    await tx.productCollectionProduct.deleteMany();
-    await tx.productCategory.deleteMany();
-    await tx.product.deleteMany();
-    await tx.productCollection.deleteMany();
+  await prisma.$transaction(
+    async (tx) => {
+      await tx.image.deleteMany({ where: { entityType: 'PRODUCT' } });
+      await tx.file.deleteMany({ where: { purpose: 'PRODUCT_IMAGE' } });
+      await tx.productCollectionProduct.deleteMany();
+      await tx.productCategory.deleteMany();
+      await tx.product.deleteMany();
+      await tx.productCollection.deleteMany();
 
-    const collectionIdByName = new Map<string, string>();
-    for (const collectionName of DRINK_COLLECTIONS) {
-      const collection = await tx.productCollection.create({
-        data: { name: collectionName },
-      });
-      collectionIdByName.set(collectionName, collection.id);
-    }
-
-    for (const sample of CATALOG_SEED_PRODUCTS) {
-      const slug = ensureUniqueSlug(slugify(sample.name), usedProductSlugs);
-
-      await tx.product.create({
-        data: {
-          name: sample.name,
-          slug,
-          description: sample.description,
-          note: null,
-          manualKkal: sample.manualKkal,
-          nutritionalInfo: sample.nutritionalInfo,
-          price: sample.price,
-          priceVariants: undefined,
-          measurementUnitId: unitByKey[sample.unit],
-          categories: {
-            create: sample.categorySlugs.map((categorySlug) => ({
-              categoryId: categoryIdBySlug.get(categorySlug)!,
-            })),
-          },
-        },
-      });
-    }
-
-    for (const drink of DRINK_SEED_PRODUCTS) {
-      const collectionId = collectionIdByName.get(drink.collectionName);
-      if (!collectionId) {
-        throw new Error(`Unknown drink collection: ${drink.collectionName}`);
+      const collectionIdByName = new Map<string, string>();
+      for (const collectionName of DRINK_COLLECTIONS) {
+        const collection = await tx.productCollection.create({
+          data: { name: collectionName },
+        });
+        collectionIdByName.set(collectionName, collection.id);
       }
 
-      const slug = ensureUniqueSlug(slugify(drink.name), usedProductSlugs);
-      const price =
-        drink.priceVariants && drink.priceVariants.length > 0
-          ? String(
-              Math.min(
-                ...drink.priceVariants.map((variant) => Number(variant.price)),
-              ),
-            )
-          : drink.price;
+      for (const sample of CATALOG_SEED_PRODUCTS) {
+        const slug = ensureUniqueSlug(slugify(sample.name), usedProductSlugs);
 
-      await tx.product.create({
-        data: {
-          name: drink.name,
-          slug,
-          description: drink.description ?? null,
-          note: drink.note ?? null,
-          manualKkal: drink.manualKkal,
-          nutritionalInfo: drink.nutritionalInfo,
-          price,
-          priceVariants: drink.priceVariants ?? undefined,
-          measurementUnitId: unitByKey.ml,
-          categories: {
-            create: [{ categoryId: drinksCategoryId }],
+        // Nested relation creates break FK checks with Prisma driver adapter in transactions.
+        const product = await tx.product.create({
+          data: {
+            name: sample.name,
+            slug,
+            description: sample.description,
+            note: null,
+            manualKkal: sample.manualKkal,
+            nutritionalInfo: sample.nutritionalInfo,
+            price: sample.price,
+            priceVariants: undefined,
+            measurementUnitId: unitByKey[sample.unit],
           },
-          collections: {
-            create: [{ productCollectionId: collectionId }],
+        });
+
+        await tx.productCategory.createMany({
+          data: sample.categorySlugs.map((categorySlug) => ({
+            productId: product.id,
+            categoryId: categoryIdBySlug.get(categorySlug)!,
+          })),
+        });
+      }
+
+      for (const drink of DRINK_SEED_PRODUCTS) {
+        const collectionId = collectionIdByName.get(drink.collectionName);
+        if (!collectionId) {
+          throw new Error(`Unknown drink collection: ${drink.collectionName}`);
+        }
+
+        const slug = ensureUniqueSlug(slugify(drink.name), usedProductSlugs);
+        const price =
+          drink.priceVariants && drink.priceVariants.length > 0
+            ? String(
+                Math.min(
+                  ...drink.priceVariants.map((variant) => Number(variant.price)),
+                ),
+              )
+            : drink.price;
+
+        const product = await tx.product.create({
+          data: {
+            name: drink.name,
+            slug,
+            description: drink.description ?? null,
+            note: drink.note ?? null,
+            manualKkal: drink.manualKkal,
+            nutritionalInfo: drink.nutritionalInfo,
+            price,
+            priceVariants: drink.priceVariants ?? undefined,
+            measurementUnitId: unitByKey.ml,
           },
-        },
-      });
-    }
-  });
+        });
+
+        await tx.productCategory.createMany({
+          data: [{ productId: product.id, categoryId: drinksCategoryId }],
+        });
+
+        await tx.productCollectionProduct.createMany({
+          data: [{ productId: product.id, productCollectionId: collectionId }],
+        });
+      }
+    },
+    {
+      maxWait: 20_000,
+      timeout: 300_000,
+    },
+  );
 
   const productsForImages = await prisma.product.findMany({
     where: { deletedAt: null },

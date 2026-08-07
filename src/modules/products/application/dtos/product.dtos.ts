@@ -39,11 +39,12 @@ export type IGetProductByIdApplicationInput = {
 
 export type IFindProductsApplicationInput = {
   name?: string;
+  search?: string;
   categoryId?: string;
   categorySlug?: string;
   collectionId?: string;
+  page?: number;
   limit?: number;
-  offset?: number;
   includeImages?: boolean;
 };
 

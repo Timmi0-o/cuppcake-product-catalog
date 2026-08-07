@@ -59,11 +59,5 @@ export const ProductSchema = z.object({
   images: z.array(ProductImageSchema).optional(),
 });
 
-export const ProductsListSchema = z.object({
-  items: z.array(ProductSchema),
-  total: z.number(),
-});
-
 export type IProduct = z.infer<typeof ProductSchema>;
 export type IProductImage = z.infer<typeof ProductImageSchema>;
-export type IProductsList = z.infer<typeof ProductsListSchema>;

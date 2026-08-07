@@ -23,19 +23,24 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const query = findProductsQuerySchema.parse({
       name: url.searchParams.get('name') ?? undefined,
+      search: url.searchParams.get('search') ?? undefined,
       categoryId: url.searchParams.get('categoryId') ?? undefined,
       categorySlug: url.searchParams.get('categorySlug') ?? undefined,
       collectionId: url.searchParams.get('collectionId') ?? undefined,
+      page: url.searchParams.get('page') ?? undefined,
       limit: url.searchParams.get('limit') ?? undefined,
-      offset: url.searchParams.get('offset') ?? undefined,
       includeImages: url.searchParams.get('includeImages') ?? undefined,
     });
 
     const { findProducts } = createProductsContainer();
-    const output = await findProducts.execute(
-      requestQueryParamsToFindProductsUseCaseInput(query),
+    const useCaseInput = requestQueryParamsToFindProductsUseCaseInput(query);
+    const output = await findProducts.execute(useCaseInput);
+    return jsonResult(
+      mapProductsListHttpResponse(output, {
+        page: useCaseInput.page,
+        limit: useCaseInput.limit,
+      }),
     );
-    return jsonResult(mapProductsListHttpResponse(output));
   } catch (error) {
     return handleRouteError(error);
   }

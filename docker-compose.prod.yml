@@ -1,0 +1,38 @@
+services:
+  app:
+    image: product-catalog-next-app:latest
+    container_name: product-catalog-next-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-1}
+      RUN_SEED: ${RUN_SEED:-0}
+      # Server-side self-fetch must stay in-container (public DNS is unreachable from Docker).
+      APP_URL: http://127.0.0.1:3000
+      DATABASE_URL: ${DATABASE_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: ${AUTH_URL:-https://cuppcake.my-crazy-master.ru}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-15m}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-7d}
+      UPLOAD_DIR: ${UPLOAD_DIR:-public/uploads}
+      UPLOAD_MAX_FILE_SIZE_BYTES: ${UPLOAD_MAX_FILE_SIZE_BYTES:-10485760}
+    ports:
+      - '3001:3000'
+    volumes:
+      - cuppcake_uploads:/app/public/uploads
+    networks:
+      - my-master-network
+
+volumes:
+  cuppcake_uploads:
+
+networks:
+  my-master-network:
+    external: true
+    name: my-master-network

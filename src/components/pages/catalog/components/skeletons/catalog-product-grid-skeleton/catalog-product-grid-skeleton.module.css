@@ -1,0 +1,53 @@
+.root {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 1024px) {
+  .root {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-radius: 1rem;
+  padding: 0.5rem;
+}
+
+.media {
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: 0.875rem;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 0.25rem 0.5rem;
+}
+
+.title {
+  height: 1.1rem;
+  width: 78%;
+}
+
+.line {
+  height: 0.75rem;
+  width: 100%;
+}
+
+.price {
+  height: 0.95rem;
+  width: 45%;
+}
+
+.button {
+  height: 2.25rem;
+  width: 100%;
+  margin-top: 0.25rem;
+}

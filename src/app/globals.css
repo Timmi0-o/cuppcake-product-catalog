@@ -83,6 +83,8 @@ html.dark {
 
   html {
     @apply scroll-smooth;
+    /* Reserve scrollbar space always — short pages without a bar won't shift layout */
+    scrollbar-gutter: stable;
   }
 
   body {
@@ -104,3 +106,39 @@ html.dark {
 @utility font-display {
   font-family: var(--font-display);
 }
+
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+[data-sonner-toaster] {
+  --normal-bg: var(--card);
+  --normal-text: var(--foreground);
+  --normal-border: var(--border);
+  font-family: var(--font-sans);
+}
+
+[data-sonner-toast].sonner-toast {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+[data-sonner-toast].sonner-toast-error {
+  border-color: color-mix(in srgb, var(--destructive) 35%, var(--border));
+}
+
+.sonner-toast-title {
+  font-weight: 600;
+}
+
+.sonner-toast-description {
+  color: var(--muted-foreground);
+}
+

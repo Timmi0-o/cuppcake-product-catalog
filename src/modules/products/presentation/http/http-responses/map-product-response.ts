@@ -1,4 +1,5 @@
 import type { FindManyResult } from '@shared/domain/query';
+import { buildPaginatedListResponse } from '@shared/presentation/http';
 import type {
   IProductImagePublic,
   IProductPublicEntity,
@@ -43,11 +44,14 @@ export function mapProductHttpResponse(product: IProductPublicEntity) {
 
 export function mapProductsListHttpResponse(
   result: FindManyResult<IProductPublicEntity>,
+  pagination?: { page?: number; limit?: number },
 ) {
-  return {
+  return buildPaginatedListResponse({
     items: result.items.map(mapProductHttpResponse),
-    total: result.total,
-  };
+    totalCount: result.total,
+    page: pagination?.page,
+    limit: pagination?.limit,
+  });
 }
 
 export function mapProductImagesHttpResponse(images: IProductImagePublic[]) {

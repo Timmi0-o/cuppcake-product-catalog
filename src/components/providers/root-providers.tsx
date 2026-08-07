@@ -2,6 +2,8 @@
 
 import { AuthProvider } from '@/components/providers/auth-provider.provider';
 import { AppThemeProvider } from '@/components/providers/app-theme-provider';
+import { QueryClientProviderWrapper } from '@/components/providers/query-client.provider';
+import { Toaster } from '@/components/shared/ui/sonner';
 import type { AppLocale } from '@/constants/locales';
 import type { IThemeValue } from '@/constants/theme.constants';
 import type { Session } from 'next-auth';
@@ -29,13 +31,16 @@ export function RootProviders({
   return (
     <AuthProvider session={session}>
       <AppThemeProvider initialTheme={initialTheme}>
-        <NextIntlClientProvider
-          locale={locale}
-          messages={messages}
-          timeZone={timeZone}
-        >
-          {children}
-        </NextIntlClientProvider>
+        <QueryClientProviderWrapper>
+          <NextIntlClientProvider
+            locale={locale}
+            messages={messages}
+            timeZone={timeZone}
+          >
+            {children}
+            <Toaster />
+          </NextIntlClientProvider>
+        </QueryClientProviderWrapper>
       </AppThemeProvider>
     </AuthProvider>
   );

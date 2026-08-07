@@ -322,10 +322,30 @@ export class PrismaProductRepository implements IProductRepository {
         ? params.where.collectionId
         : undefined;
 
+    const search =
+      typeof params.where?.search === 'string' ? params.where.search : undefined;
+
     const where: Prisma.ProductWhereInput = {
       deletedAt: null,
       ...(typeof params.where?.name === 'string'
         ? { name: { contains: params.where.name, mode: 'insensitive' } }
+        : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { description: { contains: search, mode: 'insensitive' } },
+              {
+                categories: {
+                  some: {
+                    category: {
+                      name: { contains: search, mode: 'insensitive' },
+                    },
+                  },
+                },
+              },
+            ],
+          }
         : {}),
       ...(categoryId ? { categories: { some: { categoryId } } } : {}),
       ...(collectionId

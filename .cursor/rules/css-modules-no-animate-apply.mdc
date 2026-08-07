@@ -4,10 +4,18 @@ globs: "**/*.{module.css,css}"
 alwaysApply: false
 ---
 
-# CSS modules: осторожно с `@apply`
+# CSS modules: `@reference` + осторожно с `@apply`
+
+В начале каждого `*.module.css` с `@apply`:
+
+```css
+@reference '@/tailwindcss';
+```
+
+Алиас резолвится через `postcss.config.js` → `src/styles/tailwind-reference.css`.
 
 В `*.module.css` **нельзя** `@apply`:
 - анимации `animate-in`, `fade-in`, `slide-in-from-*` и т.п.
-- семантические theme-классы (`bg-background`, `text-muted-foreground`, …)
+- семантические theme-классы (`bg-background`, `text-muted-foreground`, …) — если их нет в `tailwind-reference.css`
 
 Их пиши в `className` в TSX. В module CSS — `zinc-*` / `var(--…)`.

@@ -5,6 +5,7 @@ const SCALAR_FILTER_KEYS = new Set([
   'offset',
   'page',
   'name',
+  'search',
   'categoryId',
   'categorySlug',
   'includeImages',

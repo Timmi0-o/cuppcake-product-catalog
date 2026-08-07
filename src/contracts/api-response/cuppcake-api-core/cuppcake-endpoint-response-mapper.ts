@@ -1,4 +1,7 @@
-import type { IAppActionResponse } from '@/contracts/api-response/types';
+import type {
+  IAppActionResponse,
+  IAppActionResponseMeta,
+} from '@/contracts/api-response/types';
 import type { IApiResponseMapper } from '@/contracts/api-response/types/i-api-response-mapper';
 import type { ICuppcakeEndpointResponse } from './types/i-cuppcake-endpoint-response.type';
 
@@ -14,7 +17,11 @@ export const cuppcakeEndpointResponseMapper: IApiResponseMapper<
 > = <TData>(
   response: ICuppcakeEndpointResponse,
 ): IAppActionResponse<TData> => {
-  const result = response?.result;
+  const result = response?.result as
+    | { data?: unknown; meta?: IAppActionResponseMeta }
+    | unknown[]
+    | null
+    | undefined;
 
   let resultData: unknown = null;
 
@@ -23,14 +30,20 @@ export const cuppcakeEndpointResponseMapper: IApiResponseMapper<
   } else if (
     result &&
     typeof result === 'object' &&
-    Object.prototype.hasOwnProperty.call(result, 'data') &&
-    !Object.prototype.hasOwnProperty.call(result, 'items')
+    Object.prototype.hasOwnProperty.call(result, 'data')
   ) {
-    const nested = result as { data?: unknown; meta?: unknown };
-    resultData = nested.data === undefined ? null : nested.data;
-  } else if (result && isPlainObjectWithKeys(result)) {
+    resultData = result.data === undefined ? null : result.data;
+  } else if (result && isPlainObjectWithKeys(result) && !('meta' in result)) {
     resultData = result;
   }
+
+  const resultMeta =
+    result &&
+    typeof result === 'object' &&
+    !Array.isArray(result) &&
+    result.meta
+      ? result.meta
+      : undefined;
 
   const error = response?.error
     ? {
@@ -44,6 +57,7 @@ export const cuppcakeEndpointResponseMapper: IApiResponseMapper<
   return {
     result: {
       data: resultData as TData | null,
+      ...(resultMeta ? { meta: resultMeta } : {}),
     },
     error,
   };

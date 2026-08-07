@@ -1,5 +1,5 @@
 import { CategoryNotFoundError } from '../../../domain/entities/category';
-import type { FindManyResult } from '@shared/domain/query';
+import { mapPaginationToSlice, type FindManyResult } from '@shared/domain/query';
 import type { IProductPublicEntity } from '../../../domain/entities/product';
 import type { ICategoryRepository } from '../../../domain/repositories/category/i-category.repository';
 import type { IProductRepository } from '../../../domain/repositories/product/i-product.repository';
@@ -26,16 +26,19 @@ export class FindProductsUseCase {
       categoryId = category.id;
     }
 
+    const search = input.search?.trim() || undefined;
+
     return this.productRepository.findMany({
       where: {
         ...(input.name ? { name: input.name } : {}),
+        ...(search ? { search } : {}),
         ...(categoryId ? { categoryId } : {}),
         ...(input.collectionId ? { collectionId: input.collectionId } : {}),
       },
-      slice: {
-        limit: input.limit ?? 48,
-        offset: input.offset ?? 0,
-      },
+      slice: mapPaginationToSlice({
+        page: input.page,
+        limit: input.limit,
+      }),
       includeImages: input.includeImages ?? true,
     });
   }

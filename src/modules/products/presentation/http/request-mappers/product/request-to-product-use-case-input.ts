@@ -52,20 +52,24 @@ export function requestParamsToGetProductByIdUseCaseInput(
 
 export function requestQueryParamsToFindProductsUseCaseInput(query: {
   name?: string;
+  search?: string;
   categoryId?: string;
   categorySlug?: string;
   collectionId?: string;
+  page?: number;
   limit?: number;
-  offset?: number;
   includeImages?: boolean;
 }) {
+  const search = query.search?.trim() || undefined;
+
   return {
     name: query.name,
+    search,
     categoryId: query.categoryId,
     categorySlug: query.categorySlug,
     collectionId: query.collectionId,
+    page: query.page,
     limit: query.limit,
-    offset: query.offset,
     includeImages: query.includeImages,
   };
 }

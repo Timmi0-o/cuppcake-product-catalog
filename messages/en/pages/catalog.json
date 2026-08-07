@@ -3,5 +3,10 @@
   "emptyDescription": "No products in this category",
   "allCategories": "All",
   "categoriesAriaLabel": "Categories",
-  "moreDetails": "Details"
+  "searchAriaLabel": "Search products",
+  "searchPlaceholder": "Search by name, description or category",
+  "moreDetails": "Details",
+  "loadError": "Failed to load products",
+  "loadErrorDescription": "Check your connection and try again",
+  "retry": "Retry"
 }

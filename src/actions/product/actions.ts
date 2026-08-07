@@ -26,7 +26,6 @@ import type {
 import type {
   IProduct,
   IProductImage,
-  IProductsList,
 } from './models/product.schema';
 
 const revalidateProductPaths = (productIdOrSlug?: string) => {
@@ -40,8 +39,8 @@ const revalidateProductPaths = (productIdOrSlug?: string) => {
 
 export const productsGetMany = async (
   options: IGetActionOptions<IProductsGetManyFilters> = {},
-): Promise<IAppActionResponse<IProductsList>> =>
-  abstractGetAction<IProductsList, IProductsGetManyFilters>(
+): Promise<IAppActionResponse<IProduct[]>> =>
+  abstractGetAction<IProduct[], IProductsGetManyFilters>(
     {
       url: API_ROUTES.products.getMany,
       params: { method: 'GET', cache: 'no-store' },

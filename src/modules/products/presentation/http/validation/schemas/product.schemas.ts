@@ -54,11 +54,12 @@ export const productIdParamsSchema = z.object({
 export const findProductsQuerySchema = z
   .object({
     name: z.string().optional(),
+    search: z.string().optional(),
     categoryId: z.uuid().optional(),
     categorySlug: slugSchema.optional(),
     collectionId: z.uuid().optional(),
+    page: z.coerce.number().int().min(1).optional(),
     limit: z.coerce.number().int().min(1).max(200).optional(),
-    offset: z.coerce.number().int().min(0).optional(),
     includeImages: z
       .enum(['true', 'false'])
       .optional()

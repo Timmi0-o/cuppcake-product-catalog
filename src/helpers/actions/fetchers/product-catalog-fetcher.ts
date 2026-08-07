@@ -39,9 +39,11 @@ export const productCatalogFetcher = async <
 }: IAppFetcher<T>) => {
   const resolvedAuthMode = resolveAuthMode(isPublic, authMode);
   const requestHeaders = await getRequestHeaders();
+  const internalOrigin =
+    process.env.APP_URL?.replace(/\/$/, '') || requestHeaders.origin;
   const absoluteUrl = url.startsWith('http')
     ? url
-    : `${requestHeaders.origin}${url}`;
+    : `${internalOrigin}${url}`;
 
   const session =
     resolvedAuthMode === 'none' ? null : await ensureFreshSession();
