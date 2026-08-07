@@ -1,0 +1,11 @@
+---
+description: Application DTO naming
+globs: src/modules/**/application/dtos/**/*.ts
+alwaysApply: false
+---
+
+# Application DTOs
+
+- Prefer `i-<operation>-input.dto.ts` / `i-<operation>-output.dto.ts`
+- Types: `I*ApplicationInput` / `I*ApplicationOutput`
+- No `*Command` types; no HTTP shapes in application DTOs

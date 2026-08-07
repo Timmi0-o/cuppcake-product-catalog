@@ -1,0 +1,13 @@
+---
+description: Prisma only in infrastructure; no client types in domain/application/presentation
+globs: src/modules/**/*.ts
+alwaysApply: false
+---
+
+# Prisma boundary
+
+- Import `@prisma/client` only under `infrastructure/`
+- Domain/application/presentation use domain interfaces and DTOs only
+- Map DB rows via `row-mappers/` before leaving repository
+- Soft-delete: filter `deletedAt: null` on reads; set `deletedAt` on delete
+- Columns: snake_case via `@map`; tables via `@@map`

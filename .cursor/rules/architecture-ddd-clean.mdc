@@ -1,0 +1,17 @@
+---
+description: Clean Architecture + DDD for Next.js internal backend modules
+globs: src/modules/**/*.ts,src/app/api/**/*.ts,src/lib/di/**/*.ts
+alwaysApply: true
+---
+
+# Clean Architecture + DDD (Next internal API)
+
+- Feature-based modules: `src/modules/<feature>/{domain,application,infrastructure,presentation}`
+- Dependency direction: `presentation -> application -> domain`; `infrastructure -> domain | application ports`
+- Forbidden: domain -> outward layers; presentation -> infrastructure/repositories; Prisma outside infrastructure
+- Controllers (Route Handlers) inject/use **only** use-cases via composition roots in `src/lib/di/`
+- One use-case = one business operation with `execute(input)`
+- Mutate use-cases wrap writes in `ITransactionManager.runInTransaction`
+- Use-case must not call another use-case
+- Validation schemas live in `presentation/http/validation/schemas/` (Zod)
+- Request mappers: `request-body-to-*` | `request-query-params-to-*` | `request-params-to-*`

@@ -1,0 +1,16 @@
+---
+description: Order for creating a new entity from Prisma to HTTP route
+globs: prisma/**/*,src/modules/**/*.ts,src/app/api/**/*.ts,src/lib/di/**/*.ts
+alwaysApply: false
+---
+
+# Entity creation sequence
+
+1. Prisma model in `prisma/models/<entity>.prisma` + migration
+2. Domain: `i-*.entity.ts`, policies, errors, `I*Repository` + token
+3. Infrastructure: row-mappers, `Prisma*Repository`, write-error mapping
+4. Application: DTOs (`i-*-input.dto` / output) + use-cases
+5. Presentation: Zod schemas → request mappers → HTTP response mappers → Route Handler
+6. Composition root in `src/lib/di/<feature>.container.ts` + wire `src/app/api/v1/.../route.ts`
+
+Prisma types never leave `infrastructure`.

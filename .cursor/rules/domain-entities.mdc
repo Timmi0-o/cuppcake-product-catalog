@@ -1,0 +1,15 @@
+---
+description: Domain entity folder conventions
+globs: src/modules/**/domain/entities/**/*.ts
+alwaysApply: false
+---
+
+# Domain entities
+
+Layout: `domain/entities/<entity>/` (kebab, singular)
+
+- `i-<entity>.entity.ts` — `I*Entity` / `I*PublicEntity` (interfaces, not classes)
+- `i-create-*.input.ts` / `i-update-*.input.ts` — write inputs
+- `policies/` — pure `ensure*` / `build*` / `resolve*`
+- `errors/` — `DomainError` subclasses with stable `code`
+- Behavior in policies; no Nest/Next/Prisma in domain

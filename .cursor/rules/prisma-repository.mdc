@@ -1,0 +1,12 @@
+---
+description: Prisma repository adapter conventions
+globs: src/modules/**/infrastructure/persistence/**/*.ts
+alwaysApply: false
+---
+
+# Prisma repository
+
+- Class `Prisma*Repository` implements domain `I*Repository`
+- Unwrap `TransactionScope` via `unwrapPrismaTxFromScope`
+- Keep row mapping in `row-mappers/`
+- Map unique/FK Prisma errors to domain errors where needed

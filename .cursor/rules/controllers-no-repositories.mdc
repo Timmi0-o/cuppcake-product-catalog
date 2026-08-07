@@ -1,0 +1,11 @@
+---
+description: Route handlers must not use repositories
+globs: src/app/api/**/*.ts,src/modules/**/presentation/**/*.ts
+alwaysApply: false
+---
+
+# Controllers: no repositories
+
+- Route Handlers / presentation only: validate → map → `useCase.execute` → map response
+- Obtain use-cases from `src/lib/di/*.container.ts`
+- Never import Prisma repositories or `getPrismaClient` from presentation

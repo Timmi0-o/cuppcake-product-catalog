@@ -1,0 +1,12 @@
+---
+description: HTTP presentation conventions for Next Route Handlers
+globs: src/app/api/**/*.ts,src/modules/**/presentation/**/*.ts
+alwaysApply: false
+---
+
+# Presentation HTTP
+
+- Response wrap: `{ result: T }` / `{ result: null, error: { statusCode, message, code? } }`
+- Use `jsonResult` / `handleRouteError` / `requireBearerUser` from `@shared/presentation/http`
+- Zod schemas co-located under feature `presentation/http/validation/schemas`
+- API paths under `/api/v1/...`

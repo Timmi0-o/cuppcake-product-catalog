@@ -1,0 +1,41 @@
+enum FileStatus {
+  PENDING
+  UPLOADED
+}
+
+enum FileType {
+  IMAGE
+  DOCUMENT
+}
+
+enum FilePurpose {
+  PRODUCT_IMAGE
+}
+
+model File {
+  id           String      @id @default(uuid())
+  uploadedBy   String      @map("uploaded_by")
+  fileName     String      @map("file_name")
+  originalName String      @map("original_name")
+  mimeType     String      @default("") @map("mime_type")
+  fileSize     BigInt      @default(0) @map("file_size")
+  fileUrl      String      @unique @map("file_url")
+  checksum     String?     @map("checksum")
+  status       FileStatus  @default(PENDING) @map("status")
+  fileType     FileType    @map("file_type")
+  purpose      FilePurpose @map("purpose")
+  metadata     Json?
+  tags         String[]    @default([])
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  deletedAt    DateTime?   @map("deleted_at")
+
+  uploader User    @relation(fields: [uploadedBy], references: [id], onDelete: Restrict)
+  images   Image[]
+
+  @@index([uploadedBy])
+  @@index([purpose])
+  @@index([checksum])
+  @@index([deletedAt])
+  @@map("Files")
+}

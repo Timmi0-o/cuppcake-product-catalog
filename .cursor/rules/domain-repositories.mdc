@@ -1,0 +1,12 @@
+---
+description: Domain repository ports
+globs: src/modules/**/domain/repositories/**/*.ts
+alwaysApply: false
+---
+
+# Domain repositories
+
+- One repository interface per aggregate (read + write together)
+- Token: `*_REPOSITORY_TOKEN = Symbol(...)`
+- Write methods accept optional `TransactionScope`
+- No Prisma types in port signatures

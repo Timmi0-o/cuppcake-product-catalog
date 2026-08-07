@@ -1,0 +1,11 @@
+---
+description: Explicit naming, no abbreviations
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# Explicit naming
+
+- Prefer full words: `productId`, `nutritionalInfo`, `manualKkal` (domain term), `fileUrl`
+- Avoid cryptic abbreviations in new identifiers (`req`, `res`, `repo` as type names)
+- Mapper/file names must describe direction: `request-body-to-create-product-use-case-input`

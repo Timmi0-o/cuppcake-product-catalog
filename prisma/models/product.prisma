@@ -1,0 +1,14 @@
+model Product {
+  id               String    @id @default(uuid())
+  name             String    @map("name")
+  description      String?   @map("description")
+  manualKkal       Decimal   @map("manual_kkal") @db.Decimal(12, 2)
+  nutritionalInfo  Json      @map("nutritional_info")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  @@index([deletedAt])
+  @@index([name])
+  @@map("Products")
+}
