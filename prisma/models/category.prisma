@@ -1,0 +1,15 @@
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @map("name")
+  slug      String    @unique @map("slug")
+  sortOrder Int       @default(0) @map("sort_order")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  products ProductCategory[]
+
+  @@index([deletedAt])
+  @@index([sortOrder])
+  @@map("Categories")
+}

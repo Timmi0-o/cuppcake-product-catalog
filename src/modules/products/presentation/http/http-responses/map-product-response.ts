@@ -3,6 +3,8 @@ import type {
   IProductImagePublic,
   IProductPublicEntity,
 } from '@modules/products/domain/entities/product';
+import type { ICategoryPublicEntity } from '@modules/products/domain/entities/category';
+import type { IMeasurementUnitPublicEntity } from '@modules/products/domain/entities/measurement-unit';
 
 function mapImage(image: IProductImagePublic) {
   return {
@@ -24,11 +26,12 @@ export function mapProductHttpResponse(product: IProductPublicEntity) {
     description: product.description,
     manualKkal: product.manualKkal,
     nutritionalInfo: product.nutritionalInfo,
+    price: product.price,
+    measurementUnit: product.measurementUnit,
+    categories: product.categories,
     createdAt: product.createdAt.toISOString(),
     updatedAt: product.updatedAt.toISOString(),
-    ...(product.images
-      ? { images: product.images.map(mapImage) }
-      : {}),
+    ...(product.images ? { images: product.images.map(mapImage) } : {}),
   };
 }
 
@@ -43,4 +46,14 @@ export function mapProductsListHttpResponse(
 
 export function mapProductImagesHttpResponse(images: IProductImagePublic[]) {
   return images.map(mapImage);
+}
+
+export function mapCategoriesHttpResponse(items: ICategoryPublicEntity[]) {
+  return items;
+}
+
+export function mapMeasurementUnitsHttpResponse(
+  items: IMeasurementUnitPublicEntity[],
+) {
+  return items;
 }

@@ -1,0 +1,7 @@
+{
+  "light": "Light",
+  "dark": "Dark",
+  "toggle": "Theme",
+  "switchToLight": "Switch to light theme",
+  "switchToDark": "Switch to dark theme"
+}

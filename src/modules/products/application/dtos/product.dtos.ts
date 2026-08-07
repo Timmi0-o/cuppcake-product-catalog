@@ -5,6 +5,9 @@ export type ICreateProductApplicationInput = {
   description?: string | null;
   manualKkal: string;
   nutritionalInfo: INutritionalInfo;
+  price: string;
+  measurementUnitId: string;
+  categoryIds: string[];
 };
 
 export type IUpdateProductApplicationInput = {
@@ -13,6 +16,9 @@ export type IUpdateProductApplicationInput = {
   description?: string | null;
   manualKkal?: string;
   nutritionalInfo?: INutritionalInfo;
+  price?: string;
+  measurementUnitId?: string;
+  categoryIds?: string[];
 };
 
 export type IGetProductByIdApplicationInput = {
@@ -22,6 +28,7 @@ export type IGetProductByIdApplicationInput = {
 
 export type IFindProductsApplicationInput = {
   name?: string;
+  categoryId?: string;
   limit?: number;
   offset?: number;
   includeImages?: boolean;
@@ -43,4 +50,10 @@ export type IUploadProductImagesApplicationInput = {
 export type IDeleteProductImagesApplicationInput = {
   productId: string;
   fileIds: string[];
+};
+
+export type ICreateCategoryApplicationInput = {
+  name: string;
+  slug: string;
+  sortOrder?: number;
 };

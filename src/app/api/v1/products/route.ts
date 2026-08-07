@@ -20,14 +20,10 @@ import {
 
 export async function GET(request: Request) {
   try {
-    const { tokenService } = createAuthContainer();
-    await requireBearerUser(request, (token) =>
-      tokenService.verifyAccessToken(token),
-    );
-
     const url = new URL(request.url);
     const query = findProductsQuerySchema.parse({
       name: url.searchParams.get('name') ?? undefined,
+      categoryId: url.searchParams.get('categoryId') ?? undefined,
       limit: url.searchParams.get('limit') ?? undefined,
       offset: url.searchParams.get('offset') ?? undefined,
       includeImages: url.searchParams.get('includeImages') ?? undefined,

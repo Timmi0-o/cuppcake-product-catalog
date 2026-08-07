@@ -1,0 +1,48 @@
+---
+description: Изоляция компонентов с зависимыми файлами в собственной папке
+globs: src/components/**/*
+alwaysApply: true
+---
+
+> Перед созданием или перемещением компонентов — прочитай это правило и сверься с уже существующими папками в том же разделе (`pages/`, `shared/`, `widgets/`).
+
+# Colocation компонентов
+
+Если у React-компонента есть зависимые файлы (CSS-модули, хуки, утилиты, типы, константы, подкомпоненты), размещай его в **собственной папке с тем же именем**, что и компонент.
+
+## Структура
+
+```
+component-name/
+  component-name.tsx
+  component-name.module.css
+  use-component-name.ts
+  component-name.utils.ts
+  types/
+    i-component-name-props.ts
+```
+
+## Раскладка `src/components/`
+
+```
+pages/            # экраны: pages/<feature>/<feature>-page.tsx + components/
+shared/
+  ui/             # shadcn-примитивы (плоско: button.tsx)
+  components/     # переиспользуемые составные (product/product-card/)
+widgets/          # chrome (catalog-header/)
+```
+
+## Правила
+
+- Имя папки = имя основного файла (kebab-case)
+- Снаружи импортируй полный путь до `.tsx`, не barrel папки
+- Простые UI-примитивы без зависимостей — плоско в `shared/ui/`
+
+```tsx
+// ✅
+import { CatalogPage } from '@/components/pages/catalog/catalog-page'
+import { ProductCard } from '@/components/shared/components/product/product-card/product-card'
+
+// ❌
+import { ProductCard } from '@/components/catalog/product-card'
+```

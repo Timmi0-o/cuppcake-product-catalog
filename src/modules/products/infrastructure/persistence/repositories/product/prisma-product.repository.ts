@@ -2,8 +2,10 @@ import type { Prisma, PrismaClient, Product } from '@prisma/client';
 import type {
   ICreateProductInput,
   INutritionalInfo,
+  IProductCategoryPublic,
   IProductEntity,
   IProductImagePublic,
+  IProductMeasurementUnitPublic,
   IProductPublicEntity,
   IUpdateProductInput,
 } from '@modules/products/domain/entities/product';
@@ -11,6 +13,13 @@ import type { IProductRepository } from '@modules/products/domain/repositories/p
 import type { FindManyParams, FindManyResult } from '@shared/domain/query';
 import type { TransactionScope } from '@shared/domain/transactions';
 import { unwrapPrismaTxFromScope } from '@shared/infrastructure/persistence/transactions';
+
+type ProductWithRelations = Product & {
+  measurementUnit: IProductMeasurementUnitPublic;
+  categories: Array<{
+    category: IProductCategoryPublic;
+  }>;
+};
 
 function parseNutritionalInfo(value: Prisma.JsonValue): INutritionalInfo {
   const obj = value as Record<string, unknown>;
@@ -21,6 +30,19 @@ function parseNutritionalInfo(value: Prisma.JsonValue): INutritionalInfo {
   };
 }
 
+const productInclude = {
+  measurementUnit: {
+    select: { id: true, name: true, symbol: true },
+  },
+  categories: {
+    include: {
+      category: {
+        select: { id: true, name: true, slug: true },
+      },
+    },
+  },
+} as const;
+
 function mapProductRow(row: Product): IProductEntity {
   return {
     id: row.id,
@@ -28,6 +50,8 @@ function mapProductRow(row: Product): IProductEntity {
     description: row.description,
     manualKkal: row.manualKkal.toString(),
     nutritionalInfo: parseNutritionalInfo(row.nutritionalInfo),
+    price: row.price.toString(),
+    measurementUnitId: row.measurementUnitId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,
@@ -35,7 +59,7 @@ function mapProductRow(row: Product): IProductEntity {
 }
 
 function mapProductPublic(
-  row: Product,
+  row: ProductWithRelations,
   images?: IProductImagePublic[],
 ): IProductPublicEntity {
   return {
@@ -44,6 +68,9 @@ function mapProductPublic(
     description: row.description,
     manualKkal: row.manualKkal.toString(),
     nutritionalInfo: parseNutritionalInfo(row.nutritionalInfo),
+    price: row.price.toString(),
+    measurementUnit: row.measurementUnit,
+    categories: row.categories.map((item) => item.category),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     ...(images ? { images } : {}),
@@ -93,6 +120,11 @@ export class PrismaProductRepository implements IProductRepository {
         description: input.description ?? null,
         manualKkal: input.manualKkal,
         nutritionalInfo: input.nutritionalInfo,
+        price: input.price,
+        measurementUnitId: input.measurementUnitId,
+        categories: {
+          create: input.categoryIds.map((categoryId) => ({ categoryId })),
+        },
       },
     });
     return mapProductRow(row);
@@ -103,6 +135,19 @@ export class PrismaProductRepository implements IProductRepository {
     input: IUpdateProductInput,
     scope?: TransactionScope,
   ): Promise<IProductEntity> {
+    const client = this.client(scope);
+    if (input.categoryIds !== undefined) {
+      await client.productCategory.deleteMany({ where: { productId: id } });
+      if (input.categoryIds.length > 0) {
+        await client.productCategory.createMany({
+          data: input.categoryIds.map((categoryId) => ({
+            productId: id,
+            categoryId,
+          })),
+        });
+      }
+    }
+
     const data: Prisma.ProductUpdateInput = {};
     if (input.name !== undefined) data.name = input.name;
     if (input.description !== undefined) data.description = input.description;
@@ -110,8 +155,12 @@ export class PrismaProductRepository implements IProductRepository {
     if (input.nutritionalInfo !== undefined) {
       data.nutritionalInfo = input.nutritionalInfo;
     }
+    if (input.price !== undefined) data.price = input.price;
+    if (input.measurementUnitId !== undefined) {
+      data.measurementUnit = { connect: { id: input.measurementUnitId } };
+    }
 
-    const row = await this.client(scope).product.update({
+    const row = await client.product.update({
       where: { id },
       data,
     });
@@ -138,6 +187,7 @@ export class PrismaProductRepository implements IProductRepository {
   ): Promise<IProductPublicEntity | null> {
     const row = await this.prisma.product.findFirst({
       where: { id, deletedAt: null },
+      include: productInclude,
     });
     if (!row) {
       return null;
@@ -145,7 +195,7 @@ export class PrismaProductRepository implements IProductRepository {
     const images = options?.includeImages
       ? await loadProductImages(this.prisma, id)
       : undefined;
-    return mapProductPublic(row, images);
+    return mapProductPublic(row as ProductWithRelations, images);
   }
 
   async findMany(
@@ -153,10 +203,18 @@ export class PrismaProductRepository implements IProductRepository {
   ): Promise<FindManyResult<IProductPublicEntity>> {
     const limit = params.slice?.limit ?? 20;
     const offset = params.slice?.offset ?? 0;
+    const categoryId =
+      typeof params.where?.categoryId === 'string'
+        ? params.where.categoryId
+        : undefined;
+
     const where: Prisma.ProductWhereInput = {
       deletedAt: null,
       ...(typeof params.where?.name === 'string'
         ? { name: { contains: params.where.name, mode: 'insensitive' } }
+        : {}),
+      ...(categoryId
+        ? { categories: { some: { categoryId } } }
         : {}),
     };
 
@@ -166,6 +224,7 @@ export class PrismaProductRepository implements IProductRepository {
         take: limit,
         skip: offset,
         orderBy: params.orderBy ?? [{ createdAt: 'desc' }],
+        include: productInclude,
       }),
       this.prisma.product.count({ where }),
     ]);
@@ -175,7 +234,7 @@ export class PrismaProductRepository implements IProductRepository {
       const images = params.includeImages
         ? await loadProductImages(this.prisma, row.id)
         : undefined;
-      items.push(mapProductPublic(row, images));
+      items.push(mapProductPublic(row as ProductWithRelations, images));
     }
 
     return { items, total };

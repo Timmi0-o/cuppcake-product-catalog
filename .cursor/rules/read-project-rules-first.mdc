@@ -1,0 +1,39 @@
+---
+description: Перед написанием кода всегда читать правила проекта из .cursor/rules/
+alwaysApply: true
+---
+
+# Читай правила проекта перед кодом
+
+Перед любым изменением кода в этом репозитории:
+
+1. **Проверь** `.cursor/rules/` — прочитай все правила с `alwaysApply: true` и правила, чьи `globs` совпадают с редактируемыми файлами.
+2. **Следуй** найденным конвенциям — не импровизируй структуру, если правило уже описывает паттерн.
+3. **Сверься с существующим кодом** — если похожий кейс уже реализован в проекте, повтори тот же подход.
+
+## Frontend
+
+| Задача | Правило / skill |
+|--------|-----------------|
+| React-компонент с CSS/хуками | `component-colocation.mdc` |
+| UI/UX экранов | `ux-intuitive-yandex.mdc` |
+| Новый route + page | skill `page-route-shell` |
+| List/detail UI | skill `list-detail-ui` |
+| CSS modules `@apply` | `css-modules-no-animate-apply.mdc` |
+
+## Backend
+
+| Задача | Правило / skill |
+|--------|-----------------|
+| Clean Architecture | `architecture-ddd-clean.mdc` |
+| Новая сущность | `entity-creation-sequence.mdc` + skills `domain-entity` / `prisma-repository` / `write-endpoint` |
+
+## Colocation (кратко)
+
+```
+component-name/
+  component-name.tsx
+  component-name.module.css
+```
+
+Импорт снаружи — полный путь до файла компонента.

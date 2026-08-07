@@ -10,9 +10,12 @@ export class FindProductsUseCase {
     input: IFindProductsApplicationInput,
   ): Promise<FindManyResult<IProductPublicEntity>> {
     return this.productRepository.findMany({
-      where: input.name ? { name: input.name } : undefined,
+      where: {
+        ...(input.name ? { name: input.name } : {}),
+        ...(input.categoryId ? { categoryId: input.categoryId } : {}),
+      },
       slice: {
-        limit: input.limit ?? 20,
+        limit: input.limit ?? 48,
         offset: input.offset ?? 0,
       },
       includeImages: input.includeImages ?? true,

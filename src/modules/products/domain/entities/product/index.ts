@@ -3,6 +3,8 @@ export type {
   IProductEntity,
   IProductPublicEntity,
   IProductImagePublic,
+  IProductCategoryPublic,
+  IProductMeasurementUnitPublic,
   ICreateProductInput,
   IUpdateProductInput,
 } from './i-product.entity';

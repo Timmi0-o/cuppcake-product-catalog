@@ -11,6 +11,9 @@ export const createProductPayloadSchema = z.object({
   description: z.string().max(5000).nullable().optional(),
   manualKkal: z.union([z.string(), z.number()]).transform(String),
   nutritionalInfo: nutritionalInfoSchema,
+  price: z.union([z.string(), z.number()]).transform(String),
+  measurementUnitId: z.uuid(),
+  categoryIds: z.array(z.uuid()).default([]),
 });
 
 export const updateProductPayloadSchema = z.object({
@@ -18,6 +21,9 @@ export const updateProductPayloadSchema = z.object({
   description: z.string().max(5000).nullable().optional(),
   manualKkal: z.union([z.string(), z.number()]).transform(String).optional(),
   nutritionalInfo: nutritionalInfoSchema.optional(),
+  price: z.union([z.string(), z.number()]).transform(String).optional(),
+  measurementUnitId: z.uuid().optional(),
+  categoryIds: z.array(z.uuid()).optional(),
 });
 
 export const productIdParamsSchema = z.object({
@@ -26,6 +32,7 @@ export const productIdParamsSchema = z.object({
 
 export const findProductsQuerySchema = z.object({
   name: z.string().optional(),
+  categoryId: z.uuid().optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),
   offset: z.coerce.number().int().min(0).optional(),
   includeImages: z
@@ -38,5 +45,16 @@ export const deleteProductImagesPayloadSchema = z.object({
   fileIds: z.array(z.uuid()).min(1),
 });
 
+export const createCategoryPayloadSchema = z.object({
+  name: z.string().min(1).max(255),
+  slug: z
+    .string()
+    .min(1)
+    .max(255)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  sortOrder: z.number().int().optional(),
+});
+
 export type CreateProductPayload = z.infer<typeof createProductPayloadSchema>;
 export type UpdateProductPayload = z.infer<typeof updateProductPayloadSchema>;
+export type CreateCategoryPayload = z.infer<typeof createCategoryPayloadSchema>;

@@ -1,14 +1,20 @@
 model Product {
-  id               String    @id @default(uuid())
-  name             String    @map("name")
-  description      String?   @map("description")
-  manualKkal       Decimal   @map("manual_kkal") @db.Decimal(12, 2)
-  nutritionalInfo  Json      @map("nutritional_info")
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-  deletedAt        DateTime? @map("deleted_at")
+  id                String    @id @default(uuid())
+  name              String    @map("name")
+  description       String?   @map("description")
+  manualKkal        Decimal   @map("manual_kkal") @db.Decimal(12, 2)
+  nutritionalInfo   Json      @map("nutritional_info")
+  price             Decimal   @map("price") @db.Decimal(12, 2)
+  measurementUnitId String    @map("measurement_unit_id")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
+
+  measurementUnit MeasurementUnit  @relation(fields: [measurementUnitId], references: [id], onDelete: Restrict)
+  categories      ProductCategory[]
 
   @@index([deletedAt])
   @@index([name])
+  @@index([measurementUnitId])
   @@map("Products")
 }

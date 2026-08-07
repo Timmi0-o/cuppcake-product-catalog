@@ -22,11 +22,6 @@ type RouteContext = {
 
 export async function GET(request: Request, context: RouteContext) {
   try {
-    const { tokenService } = createAuthContainer();
-    await requireBearerUser(request, (token) =>
-      tokenService.verifyAccessToken(token),
-    );
-
     const { id } = productIdParamsSchema.parse(await context.params);
     const url = new URL(request.url);
     const includeImages = url.searchParams.get('includeImages');

@@ -4,12 +4,26 @@ export type INutritionalInfo = {
   carbohydrates: number;
 };
 
+export type IProductCategoryPublic = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+export type IProductMeasurementUnitPublic = {
+  id: string;
+  name: string;
+  symbol: string;
+};
+
 export type IProductEntity = {
   id: string;
   name: string;
   description: string | null;
   manualKkal: string;
   nutritionalInfo: INutritionalInfo;
+  price: string;
+  measurementUnitId: string;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -21,6 +35,9 @@ export type IProductPublicEntity = {
   description: string | null;
   manualKkal: string;
   nutritionalInfo: INutritionalInfo;
+  price: string;
+  measurementUnit: IProductMeasurementUnitPublic;
+  categories: IProductCategoryPublic[];
   createdAt: Date;
   updatedAt: Date;
   images?: IProductImagePublic[];
@@ -42,6 +59,9 @@ export type ICreateProductInput = {
   description?: string | null;
   manualKkal: string;
   nutritionalInfo: INutritionalInfo;
+  price: string;
+  measurementUnitId: string;
+  categoryIds: string[];
 };
 
 export type IUpdateProductInput = {
@@ -49,4 +69,7 @@ export type IUpdateProductInput = {
   description?: string | null;
   manualKkal?: string;
   nutritionalInfo?: INutritionalInfo;
+  price?: string;
+  measurementUnitId?: string;
+  categoryIds?: string[];
 };
