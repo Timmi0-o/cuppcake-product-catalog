@@ -9,6 +9,8 @@ import en_pages_catalog_json from '../../../messages/en/pages/catalog.json'
 import en_pages_product_json from '../../../messages/en/pages/product.json'
 import en_ui_auth_json from '../../../messages/en/ui/auth.json'
 import en_ui_language_json from '../../../messages/en/ui/language.json'
+import en_ui_placeholder_json from '../../../messages/en/ui/placeholder.json'
+import en_ui_table_json from '../../../messages/en/ui/table.json'
 import en_ui_theme_json from '../../../messages/en/ui/theme.json'
 import ru_common_json from '../../../messages/ru/common.json'
 import ru_components_image_gallery_json from '../../../messages/ru/components/image-gallery.json'
@@ -17,6 +19,8 @@ import ru_pages_catalog_json from '../../../messages/ru/pages/catalog.json'
 import ru_pages_product_json from '../../../messages/ru/pages/product.json'
 import ru_ui_auth_json from '../../../messages/ru/ui/auth.json'
 import ru_ui_language_json from '../../../messages/ru/ui/language.json'
+import ru_ui_placeholder_json from '../../../messages/ru/ui/placeholder.json'
+import ru_ui_table_json from '../../../messages/ru/ui/table.json'
 import ru_ui_theme_json from '../../../messages/ru/ui/theme.json'
 
 type Messages = Record<string, unknown>
@@ -36,6 +40,8 @@ export const messagesByLocale: Record<string, Messages> = {
 		wrap(["pages","product"], en_pages_product_json),
 		wrap(["ui","auth"], en_ui_auth_json),
 		wrap(["ui","language"], en_ui_language_json),
+		wrap(["ui","placeholder"], en_ui_placeholder_json),
+		wrap(["ui","table"], en_ui_table_json),
 		wrap(["ui","theme"], en_ui_theme_json),
 	]),
 	ru: mergeAll([
@@ -46,6 +52,8 @@ export const messagesByLocale: Record<string, Messages> = {
 		wrap(["pages","product"], ru_pages_product_json),
 		wrap(["ui","auth"], ru_ui_auth_json),
 		wrap(["ui","language"], ru_ui_language_json),
+		wrap(["ui","placeholder"], ru_ui_placeholder_json),
+		wrap(["ui","table"], ru_ui_table_json),
 		wrap(["ui","theme"], ru_ui_theme_json),
 	]),
 }

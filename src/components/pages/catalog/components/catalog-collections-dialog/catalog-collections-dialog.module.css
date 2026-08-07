@@ -1,0 +1,48 @@
+@reference "@/tailwindcss";
+
+.content {
+  @apply sm:max-w-md;
+}
+
+.list {
+  @apply flex flex-col gap-2;
+}
+
+.listConstrained {
+  @apply max-h-[min(60dvh,28rem)] overflow-y-auto overscroll-contain pr-1;
+}
+
+.skeletonList {
+  @apply flex flex-col gap-2;
+}
+
+.skeletonItem {
+  @apply h-12 w-full rounded-xl;
+}
+
+.item {
+  @apply flex w-full items-center rounded-xl border border-transparent px-4 py-3 text-left transition-colors;
+  background: color-mix(in oklab, var(--secondary) 70%, transparent);
+}
+
+.item:hover {
+  background: var(--accent);
+}
+
+.itemSelected {
+  border-color: color-mix(in oklab, var(--primary) 30%, transparent);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.itemSelected:hover {
+  background: color-mix(in oklab, var(--primary) 92%, transparent);
+}
+
+.itemName {
+  @apply text-sm font-medium tracking-wide;
+}
+
+.sentinel {
+  @apply h-px w-full shrink-0;
+}

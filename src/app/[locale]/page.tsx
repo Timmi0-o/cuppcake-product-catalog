@@ -1,16 +1,14 @@
-import { CatalogPage } from '@/components/pages/catalog/catalog-page';
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale } from "next-intl/server";
+import { CatalogPage } from "@/components/pages/catalog/catalog-page";
 
 type CatalogRoutePageProps = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ category?: string }>;
 };
 
 export default async function CatalogRoutePage({
   params,
-  searchParams,
 }: CatalogRoutePageProps) {
-  const [{ locale }, { category }] = await Promise.all([params, searchParams]);
+  const { locale } = await params;
   setRequestLocale(locale);
-  return <CatalogPage categorySlug={category} />;
+  return <CatalogPage />;
 }

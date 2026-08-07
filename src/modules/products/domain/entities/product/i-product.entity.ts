@@ -33,7 +33,7 @@ export type IProductEntity = {
   slug: string;
   description: string | null;
   note: string | null;
-  manualKkal: string;
+  manualKkal: string | null;
   nutritionalInfo: INutritionalInfo;
   price: string;
   priceVariants: IProductPriceVariant[] | null;
@@ -49,7 +49,7 @@ export type IProductPublicEntity = {
   slug: string;
   description: string | null;
   note: string | null;
-  manualKkal: string;
+  manualKkal: string | null;
   nutritionalInfo: INutritionalInfo;
   price: string;
   priceVariants: IProductPriceVariant[] | null;
@@ -80,7 +80,7 @@ export type ICreateProductInput = {
   slug: string;
   description?: string | null;
   note?: string | null;
-  manualKkal: string;
+  manualKkal?: string | null;
   nutritionalInfo: INutritionalInfo;
   price: string;
   priceVariants?: IProductPriceVariant[] | null;
@@ -94,7 +94,7 @@ export type IUpdateProductInput = {
   slug?: string;
   description?: string | null;
   note?: string | null;
-  manualKkal?: string;
+  manualKkal?: string | null;
   nutritionalInfo?: INutritionalInfo;
   price?: string;
   priceVariants?: IProductPriceVariant[] | null;

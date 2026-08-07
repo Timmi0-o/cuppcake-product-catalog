@@ -1,3 +1,4 @@
+import type { FindManyParams, FindManyResult } from '@shared/domain/query';
 import type { TransactionScope } from '@shared/domain/transactions';
 import type {
   ICreateProductCollectionInput,
@@ -6,7 +7,9 @@ import type {
 } from '../../entities/product-collection';
 
 export interface IProductCollectionRepository {
-  findManyPublic(): Promise<IProductCollectionPublicEntity[]>;
+  findManyPublic(
+    params?: Pick<FindManyParams, 'slice'>,
+  ): Promise<FindManyResult<IProductCollectionPublicEntity>>;
   findById(id: string): Promise<IProductCollectionEntity | null>;
   findByIds(ids: string[]): Promise<IProductCollectionEntity[]>;
   create(

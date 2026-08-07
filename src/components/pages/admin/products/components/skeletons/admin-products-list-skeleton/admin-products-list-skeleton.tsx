@@ -1,5 +1,5 @@
-import { Skeleton } from '@/components/shared/ui/skeleton';
-import styles from './admin-products-list-skeleton.module.css';
+import { Skeleton } from "@/components/shared/ui/skeleton";
+import styles from "./admin-products-list-skeleton.module.css";
 
 type AdminProductsListSkeletonProps = {
   count?: number;

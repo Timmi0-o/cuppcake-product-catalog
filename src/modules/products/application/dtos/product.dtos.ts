@@ -8,7 +8,7 @@ export type ICreateProductApplicationInput = {
   slug?: string;
   description?: string | null;
   note?: string | null;
-  manualKkal: string;
+  manualKkal?: string | null;
   nutritionalInfo: INutritionalInfo;
   price: string;
   priceVariants?: IProductPriceVariant[] | null;
@@ -23,7 +23,7 @@ export type IUpdateProductApplicationInput = {
   slug?: string;
   description?: string | null;
   note?: string | null;
-  manualKkal?: string;
+  manualKkal?: string | null;
   nutritionalInfo?: INutritionalInfo;
   price?: string;
   priceVariants?: IProductPriceVariant[] | null;
@@ -75,4 +75,13 @@ export type ICreateCategoryApplicationInput = {
 
 export type ICreateProductCollectionApplicationInput = {
   name: string;
+};
+
+export type IFindProductCollectionsApplicationInput = {
+  page?: number;
+  limit?: number;
+};
+
+export type IGetProductCollectionByIdApplicationInput = {
+  collectionId: string;
 };

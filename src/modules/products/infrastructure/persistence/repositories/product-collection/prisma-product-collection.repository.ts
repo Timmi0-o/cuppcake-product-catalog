@@ -5,6 +5,7 @@ import type {
   IProductCollectionPublicEntity,
 } from '@modules/products/domain/entities/product-collection';
 import type { IProductCollectionRepository } from '@modules/products/domain/repositories/product-collection/i-product-collection.repository';
+import type { FindManyParams, FindManyResult } from '@shared/domain/query';
 import type { TransactionScope } from '@shared/domain/transactions';
 import { unwrapPrismaTxFromScope } from '@shared/infrastructure/persistence/transactions';
 
@@ -27,12 +28,27 @@ export class PrismaProductCollectionRepository
     return scope ? unwrapPrismaTxFromScope(scope) : this.prisma;
   }
 
-  async findManyPublic(): Promise<IProductCollectionPublicEntity[]> {
-    const rows = await this.prisma.productCollection.findMany({
-      where: { deletedAt: null },
-      orderBy: [{ name: 'asc' }],
-    });
-    return rows.map((row) => ({ id: row.id, name: row.name }));
+  async findManyPublic(
+    params?: Pick<FindManyParams, 'slice'>,
+  ): Promise<FindManyResult<IProductCollectionPublicEntity>> {
+    const limit = params?.slice?.limit ?? 20;
+    const offset = params?.slice?.offset ?? 0;
+    const where = { deletedAt: null };
+
+    const [rows, total] = await Promise.all([
+      this.prisma.productCollection.findMany({
+        where,
+        orderBy: [{ name: 'asc' }],
+        take: limit,
+        skip: offset,
+      }),
+      this.prisma.productCollection.count({ where }),
+    ]);
+
+    return {
+      items: rows.map((row) => ({ id: row.id, name: row.name })),
+      total,
+    };
   }
 
   async findById(id: string): Promise<IProductCollectionEntity | null> {

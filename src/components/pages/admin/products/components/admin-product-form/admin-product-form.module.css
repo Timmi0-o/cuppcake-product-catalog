@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  max-width: 48rem;
 }
 
 .header {
@@ -18,11 +19,16 @@
   letter-spacing: -0.02em;
 }
 
-.form {
+.stack {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  max-width: 42rem;
+}
+
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .grid2 {
@@ -40,47 +46,42 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
 
-.label {
+.hint {
   font-size: 0.8125rem;
-  font-weight: 500;
+  line-height: 1.45;
+  color: var(--muted-foreground);
 }
 
-.input,
-.select,
-.textarea {
-  border-radius: 0.85rem;
-  border: 1px solid var(--border);
-  background: var(--background);
-  padding: 0.7rem 0.9rem;
-  font-size: 0.95rem;
-  outline: none;
+.preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.65rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 1rem;
+  background: color-mix(in oklab, var(--secondary) 80%, transparent);
+  font-size: 0.875rem;
 }
 
-.textarea {
-  min-height: 5.5rem;
-  resize: vertical;
-}
-
-.input:focus,
-.select:focus,
-.textarea:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 22%, transparent);
+.previewValue {
+  font-family: var(--font-display, inherit);
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
 }
 
 .categories {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.55rem;
 }
 
 .categoryRow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   font-size: 0.9rem;
 }
 
@@ -88,18 +89,11 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: 0.5rem;
 }
 
 .error {
   font-size: 0.875rem;
   color: var(--destructive, #b42318);
-}
-
-.sectionTitle {
-  margin-top: 0.5rem;
-  font-size: 1rem;
-  font-weight: 600;
 }
 
 .images {
@@ -127,4 +121,14 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
+}
+
+@media (max-width: 639px) {
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
 }

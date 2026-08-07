@@ -8,6 +8,7 @@ const SCALAR_FILTER_KEYS = new Set([
   'search',
   'categoryId',
   'categorySlug',
+  'collectionId',
   'includeImages',
   'q',
   'sort',

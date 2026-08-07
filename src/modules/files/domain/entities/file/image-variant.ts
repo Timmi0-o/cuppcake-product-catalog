@@ -12,12 +12,16 @@ export const IMAGE_VARIANT_MAX_WIDTH: Record<
   Exclude<ImageVariant, "original">,
   number
 > = {
-  low: 400,
-  medium: 800,
-  high: 1600,
+  low: 320,
+  medium: 720,
+  high: 1200,
 };
 
-export const IMAGE_VARIANT_WEBP_QUALITY = 80;
+/** WebP quality 0–100. Lower = smaller files for mobile/catalog. */
+export const IMAGE_VARIANT_WEBP_QUALITY = 72;
+
+/** Sharp webp effort 0–6: higher compresses better (slower encode). */
+export const IMAGE_VARIANT_WEBP_EFFORT = 4;
 
 export type ProductImageFileMetadata = {
   urls: string[];

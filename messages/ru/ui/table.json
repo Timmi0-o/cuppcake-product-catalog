@@ -1,0 +1,15 @@
+{
+  "settingsTitle": "Настройки таблицы",
+  "total": "Всего",
+  "selected": "Выбрано",
+  "rowsPerPage": "Строк на странице",
+  "visibleColumns": "Видимые колонки",
+  "selectAll": "Все",
+  "deselectAll": "Сбросить",
+  "rowsPerPageOption": "{count} строк",
+  "paginationSummary": "Показано {from}–{to} из {total}",
+  "prev": "Назад",
+  "next": "Далее",
+  "noData": "Нет данных",
+  "loading": "Загрузка данных..."
+}

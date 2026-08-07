@@ -15,10 +15,15 @@ const PAGE_LIMIT = 20
 
 type ProductGridProps = {
 	categorySlug?: string
+	collectionId?: string
 	search?: string
 }
 
-export function ProductGrid({ categorySlug, search }: ProductGridProps) {
+export function ProductGrid({
+	categorySlug,
+	collectionId,
+	search,
+}: ProductGridProps) {
 	const t = useTranslations('pages.catalog')
 
 	const filters = useMemo(
@@ -26,9 +31,10 @@ export function ProductGrid({ categorySlug, search }: ProductGridProps) {
 			limit: PAGE_LIMIT,
 			includeImages: true,
 			...(categorySlug ? { categorySlug } : {}),
+			...(collectionId ? { collectionId } : {}),
 			...(search ? { search } : {}),
 		}),
-		[categorySlug, search],
+		[categorySlug, collectionId, search],
 	)
 
 	const listQuery = useProductGetManyInfinite(filters)

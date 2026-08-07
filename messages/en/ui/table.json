@@ -1,0 +1,15 @@
+{
+  "settingsTitle": "Table settings",
+  "total": "Total",
+  "selected": "Selected",
+  "rowsPerPage": "Rows per page",
+  "visibleColumns": "Visible columns",
+  "selectAll": "All",
+  "deselectAll": "Reset",
+  "rowsPerPageOption": "{count} rows",
+  "paginationSummary": "Showing {from}–{to} of {total}",
+  "prev": "Prev",
+  "next": "Next",
+  "noData": "No data",
+  "loading": "Loading data..."
+}

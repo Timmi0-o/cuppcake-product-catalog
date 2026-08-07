@@ -1,4 +1,31 @@
-import { z } from 'zod';
+import { z } from "zod";
+
+/** Empty string / null → null. Omitted (undefined) stays undefined for PATCH. */
+const updateManualKkalSchema = z
+  .union([z.string(), z.number(), z.null()])
+  .optional()
+  .transform((value) => {
+    if (value === undefined) {
+      return undefined;
+    }
+    if (value === null) {
+      return null;
+    }
+    const normalized = String(value).trim();
+    return normalized === "" ? null : normalized;
+  });
+
+/** Empty / omitted → null on create. */
+const createManualKkalSchema = z
+  .union([z.string(), z.number(), z.null()])
+  .optional()
+  .transform((value) => {
+    if (value === undefined || value === null) {
+      return null;
+    }
+    const normalized = String(value).trim();
+    return normalized === "" ? null : normalized;
+  });
 
 export const nutritionalInfoSchema = z.object({
   protein: z.number(),
@@ -24,7 +51,7 @@ export const createProductPayloadSchema = z.object({
   slug: slugSchema.optional(),
   description: z.string().max(5000).nullable().optional(),
   note: z.string().max(2000).nullable().optional(),
-  manualKkal: z.union([z.string(), z.number()]).transform(String),
+  manualKkal: createManualKkalSchema,
   nutritionalInfo: nutritionalInfoSchema,
   price: z.union([z.string(), z.number()]).transform(String),
   priceVariants: z.array(priceVariantSchema).nullable().optional(),
@@ -38,7 +65,7 @@ export const updateProductPayloadSchema = z.object({
   slug: slugSchema.optional(),
   description: z.string().max(5000).nullable().optional(),
   note: z.string().max(2000).nullable().optional(),
-  manualKkal: z.union([z.string(), z.number()]).transform(String).optional(),
+  manualKkal: updateManualKkalSchema,
   nutritionalInfo: nutritionalInfoSchema.optional(),
   price: z.union([z.string(), z.number()]).transform(String).optional(),
   priceVariants: z.array(priceVariantSchema).nullable().optional(),
@@ -61,19 +88,16 @@ export const findProductsQuerySchema = z
     page: z.coerce.number().int().min(1).optional(),
     limit: z.coerce.number().int().min(1).max(200).optional(),
     includeImages: z
-      .enum(['true', 'false'])
+      .enum(["true", "false"])
       .optional()
       .transform((value) =>
-        value === undefined ? undefined : value === 'true',
+        value === undefined ? undefined : value === "true",
       ),
   })
-  .refine(
-    (query) => !(query.categoryId && query.categorySlug),
-    {
-      message: 'Pass either categoryId or categorySlug, not both',
-      path: ['categorySlug'],
-    },
-  );
+  .refine((query) => !(query.categoryId && query.categorySlug), {
+    message: "Pass either categoryId or categorySlug, not both",
+    path: ["categorySlug"],
+  });
 
 export const deleteProductImagesPayloadSchema = z.object({
   fileIds: z.array(z.uuid()).min(1),

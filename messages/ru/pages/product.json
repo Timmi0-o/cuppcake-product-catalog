@@ -1,7 +1,10 @@
 {
   "backToCatalog": "К каталогу",
   "nutritionTitle": "Пищевая ценность",
+  "descriptionTitle": "Описание",
   "kcal": "Ккал",
+  "kcalUnavailable": "Нет данных о калориях",
+  "kcalCalculatedHint": "посчитано из КБЖУ",
   "protein": "Белки",
   "fats": "Жиры",
   "carbohydrates": "Углеводы",

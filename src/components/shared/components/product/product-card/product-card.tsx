@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { ProductCardMedia } from '@/components/shared/components/product/product-card/product-card-media/product-card-media';
-import { Button } from '@/components/shared/ui/button';
+import { useLocale, useTranslations } from "next-intl";
+import { ProductCardMedia } from "@/components/shared/components/product/product-card/product-card-media/product-card-media";
+import { Button } from "@/components/shared/ui/button";
 import {
   Card,
   CardContent,
@@ -9,12 +10,15 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/shared/ui/card';
-import { INTL_LOCALES, isAppLocale } from '@/constants/locales';
-import { Link } from '@/helpers/i18n/routing';
-import { formatProductPriceWithVariants } from '@/utils/format-price.util';
-import { pickImageUrlByVariant } from '@/utils/pick-image-url-by-variant.util';
-import { useLocale, useTranslations } from 'next-intl';
+} from "@/components/shared/ui/card";
+import { INTL_LOCALES, isAppLocale } from "@/constants/locales";
+import { Link } from "@/helpers/i18n/routing";
+import { formatProductPriceWithVariants } from "@/utils/format-price.util";
+import { pickImageUrlByVariant } from "@/utils/pick-image-url-by-variant.util";
+import {
+  formatCaloriesValue,
+  resolveProductCalories,
+} from "@/utils/resolve-product-calories.util";
 
 export type ProductCardData = {
   id: string;
@@ -23,6 +27,12 @@ export type ProductCardData = {
   description: string | null;
   note: string | null;
   price: string;
+  manualKkal?: string | null;
+  nutritionalInfo?: {
+    protein: number;
+    fats: number;
+    carbohydrates: number;
+  };
   priceVariants?: Array<{ volumeMl: number; price: string }> | null;
   measurementUnit: { symbol: string };
   images?: Array<{
@@ -39,18 +49,23 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product, index = 0 }: ProductCardProps) {
-  const t = useTranslations('pages.catalog');
+  const t = useTranslations("pages.catalog");
   const locale = useLocale();
   const href = `/product/${product.slug}`;
   const priceLocale = isAppLocale(locale)
     ? INTL_LOCALES[locale]
     : INTL_LOCALES.ru;
 
+  const calories = resolveProductCalories({
+    manualKkal: product.manualKkal,
+    nutritionalInfo: product.nutritionalInfo,
+  });
+
   const mediaImages = (product.images ?? []).map((image) => {
     const urls = image.urls.length > 0 ? image.urls : [image.fileUrl];
     return {
       id: image.id,
-      src: pickImageUrlByVariant(urls, 'low', image.fileUrl),
+      src: pickImageUrlByVariant(urls, "low", image.fileUrl),
       alt: product.name,
     };
   });
@@ -86,6 +101,11 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             priceLocale,
           )}
         </p>
+        <p className="text-sm text-muted-foreground">
+          {calories.kind === "unavailable"
+            ? t("kcalUnavailable")
+            : t("kcal", { value: formatCaloriesValue(calories.value) })}
+        </p>
         {product.note ? (
           <p className="text-xs leading-relaxed text-muted-foreground">
             {product.note}
@@ -99,7 +119,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
           render={<Link href={href} />}
           nativeButton={false}
         >
-          {t('moreDetails')}
+          {t("moreDetails")}
         </Button>
       </CardFooter>
     </Card>

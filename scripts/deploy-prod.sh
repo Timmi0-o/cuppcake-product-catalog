@@ -226,7 +226,7 @@ log "Done: ${DEPLOY_IMAGE} → ${REMOTE} (${DEPLOY_SITE_DOMAIN})"
 
 if [[ "${DEPLOY_RUN_SEED:-0}" == "1" ]]; then
   log "Seed against remote Postgres (5442) + sync uploads into volume"
-  REMOTE_DATABASE_URL="${DEPLOY_SEED_DATABASE_URL:-postgresql://app:app@${DEPLOY_HOST}:5442/my_master_api?schema=cuppcake&options=-csearch_path%3Dcuppcake}"
+  REMOTE_DATABASE_URL="${DEPLOY_SEED_DATABASE_URL:-postgresql://app:app@${DEPLOY_HOST}:5442/cuppcake?schema=public}"
   DATABASE_URL="$REMOTE_DATABASE_URL" npm run db:seed
 
   UPLOADS_TAR="${TMPDIR:-/tmp}/cuppcake-uploads.tgz"
@@ -234,15 +234,14 @@ if [[ "${DEPLOY_RUN_SEED:-0}" == "1" ]]; then
   run_scp "$UPLOADS_TAR" "${REMOTE}:/tmp/cuppcake-uploads.tgz"
   rm -f "$UPLOADS_TAR"
 
-  run_ssh bash -s <<'EOF'
+  run_ssh bash -s <<EOF
 set -euo pipefail
-docker run --rm \
-  -v product-catalog-next-app_cuppcake_uploads:/data \
-  -v /tmp/cuppcake-uploads.tgz:/tmp/cuppcake-uploads.tgz:ro \
-  alpine:3.20 \
-  sh -c 'rm -rf /data/* /data/.[!.]* 2>/dev/null || true; tar -xzf /tmp/cuppcake-uploads.tgz -C /data'
+UPLOAD_DIR=$(printf '%q' "${DEPLOY_DIR}/uploads")
+mkdir -p "\$UPLOAD_DIR"
+tar -xzf /tmp/cuppcake-uploads.tgz -C "\$UPLOAD_DIR"
 rm -f /tmp/cuppcake-uploads.tgz
-echo "==> uploads synced into volume"
+chown -R 1001:1001 "\$UPLOAD_DIR" 2>/dev/null || true
+echo "==> uploads synced into \$UPLOAD_DIR"
 EOF
 fi
 

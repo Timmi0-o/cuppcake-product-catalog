@@ -1,7 +1,10 @@
 {
   "backToCatalog": "Back to catalog",
   "nutritionTitle": "Nutrition facts",
+  "descriptionTitle": "Description",
   "kcal": "kcal",
+  "kcalUnavailable": "No calorie data",
+  "kcalCalculatedHint": "calculated from macros",
   "protein": "Protein",
   "fats": "Fats",
   "carbohydrates": "Carbs",

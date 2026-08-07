@@ -62,10 +62,25 @@ export function mapCategoriesHttpResponse(items: ICategoryPublicEntity[]) {
   return items;
 }
 
-export function mapProductCollectionsHttpResponse(
-  items: IProductCollectionPublicEntity[],
+export function mapProductCollectionHttpResponse(
+  item: IProductCollectionPublicEntity,
 ) {
-  return items;
+  return {
+    id: item.id,
+    name: item.name,
+  };
+}
+
+export function mapProductCollectionsListHttpResponse(
+  result: FindManyResult<IProductCollectionPublicEntity>,
+  pagination?: { page?: number; limit?: number },
+) {
+  return buildPaginatedListResponse({
+    items: result.items.map(mapProductCollectionHttpResponse),
+    totalCount: result.total,
+    page: pagination?.page,
+    limit: pagination?.limit,
+  });
 }
 
 export function mapMeasurementUnitsHttpResponse(

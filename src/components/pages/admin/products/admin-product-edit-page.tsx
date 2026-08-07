@@ -1,8 +1,8 @@
-import { categoriesGetMany } from '@/actions/category/actions';
-import { measurementUnitsGetMany } from '@/actions/measurement-unit/actions';
-import { productsGetOne } from '@/actions/product/actions';
-import { AdminProductForm } from '@/components/pages/admin/products/components/admin-product-form/admin-product-form';
-import { notFound } from 'next/navigation';
+import { notFound } from "next/navigation";
+import { categoriesGetMany } from "@/actions/category/actions";
+import { measurementUnitsGetMany } from "@/actions/measurement-unit/actions";
+import { productsGetOne } from "@/actions/product/actions";
+import { AdminProductForm } from "@/components/pages/admin/products/components/admin-product-form/admin-product-form";
 
 type AdminProductEditPageProps = {
   productId: string;

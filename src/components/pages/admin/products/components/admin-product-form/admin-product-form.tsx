@@ -1,24 +1,41 @@
-'use client';
+"use client";
 
-import type { ICategory } from '@/actions/category/models/category.schema';
-import type { IMeasurementUnit } from '@/actions/measurement-unit/models/measurement-unit.schema';
+import { useTranslations } from "next-intl";
+import { type FormEvent, useMemo, useState } from "react";
+import type { ICategory } from "@/actions/category/models/category.schema";
+import type { IMeasurementUnit } from "@/actions/measurement-unit/models/measurement-unit.schema";
 import {
   productsCreate,
   productsDelete,
   productsDeleteImages,
   productsUpdate,
   productsUploadImages,
-} from '@/actions/product/actions';
-import type { IProduct } from '@/actions/product/models/product.schema';
-import { Button } from '@/components/shared/ui/button';
-import { useRouter } from '@/helpers/i18n/routing';
-import { pickImageUrlByVariant } from '@/utils/pick-image-url-by-variant.util';
-import { useTranslations } from 'next-intl';
-import { useState, type FormEvent } from 'react';
-import styles from './admin-product-form.module.css';
+} from "@/actions/product/actions";
+import type { IProduct } from "@/actions/product/models/product.schema";
+import { Button } from "@/components/shared/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/shared/ui/card";
+import { Checkbox } from "@/components/shared/ui/checkbox";
+import { Input } from "@/components/shared/ui/input";
+import { Label } from "@/components/shared/ui/label";
+import { Select } from "@/components/shared/ui/select";
+import { Separator } from "@/components/shared/ui/separator";
+import { Textarea } from "@/components/shared/ui/textarea";
+import { useRouter } from "@/helpers/i18n/routing";
+import { pickImageUrlByVariant } from "@/utils/pick-image-url-by-variant.util";
+import {
+  formatCaloriesValue,
+  resolveProductCalories,
+} from "@/utils/resolve-product-calories.util";
+import styles from "./admin-product-form.module.css";
 
 type AdminProductFormProps = {
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
   product?: IProduct;
   categories: ICategory[];
   measurementUnits: IMeasurementUnit[];
@@ -42,17 +59,17 @@ const toFormState = (
   product: IProduct | undefined,
   measurementUnits: IMeasurementUnit[],
 ): FormState => ({
-  name: product?.name ?? '',
-  slug: product?.slug ?? '',
-  description: product?.description ?? '',
-  note: product?.note ?? '',
-  price: product?.price ?? '',
-  manualKkal: product?.manualKkal ?? '',
-  protein: String(product?.nutritionalInfo.protein ?? 0),
-  fats: String(product?.nutritionalInfo.fats ?? 0),
-  carbohydrates: String(product?.nutritionalInfo.carbohydrates ?? 0),
+  name: product?.name ?? "",
+  slug: product?.slug ?? "",
+  description: product?.description ?? "",
+  note: product?.note ?? "",
+  price: product?.price ?? "",
+  manualKkal: product?.manualKkal ?? "",
+  protein: String(product?.nutritionalInfo.protein ?? ""),
+  fats: String(product?.nutritionalInfo.fats ?? ""),
+  carbohydrates: String(product?.nutritionalInfo.carbohydrates ?? ""),
   measurementUnitId:
-    product?.measurementUnit.id ?? measurementUnits[0]?.id ?? '',
+    product?.measurementUnit.id ?? measurementUnits[0]?.id ?? "",
   categoryIds: product?.categories.map((category) => category.id) ?? [],
 });
 
@@ -62,7 +79,7 @@ export function AdminProductForm({
   categories,
   measurementUnits,
 }: AdminProductFormProps) {
-  const t = useTranslations('pages.admin');
+  const t = useTranslations("pages.admin");
   const router = useRouter();
   const [form, setForm] = useState<FormState>(() =>
     toFormState(product, measurementUnits),
@@ -92,20 +109,35 @@ export function AdminProductForm({
     });
   };
 
+  const nutritionalInfo = useMemo(
+    () => ({
+      protein: Number(form.protein) || 0,
+      fats: Number(form.fats) || 0,
+      carbohydrates: Number(form.carbohydrates) || 0,
+    }),
+    [form.carbohydrates, form.fats, form.protein],
+  );
+
+  const caloriesPreview = useMemo(
+    () =>
+      resolveProductCalories({
+        manualKkal: form.manualKkal.trim() || null,
+        nutritionalInfo,
+      }),
+    [form.manualKkal, nutritionalInfo],
+  );
+
   const buildPayload = () => {
     const slug = form.slug.trim();
+    const manualKkal = form.manualKkal.trim();
     return {
       name: form.name.trim(),
       ...(slug ? { slug } : {}),
       description: form.description.trim() || null,
       note: form.note.trim() || null,
       price: form.price.trim(),
-      manualKkal: form.manualKkal.trim(),
-      nutritionalInfo: {
-        protein: Number(form.protein),
-        fats: Number(form.fats),
-        carbohydrates: Number(form.carbohydrates),
-      },
+      manualKkal: manualKkal === "" ? null : manualKkal,
+      nutritionalInfo,
       measurementUnitId: form.measurementUnitId,
       categoryIds: form.categoryIds,
       priceVariants: product?.priceVariants ?? null,
@@ -120,10 +152,10 @@ export function AdminProductForm({
     try {
       const payload = buildPayload();
 
-      if (mode === 'create') {
+      if (mode === "create") {
         const response = await productsCreate(payload);
         if (response.error || !response.result?.data) {
-          setError(response.error?.message ?? t('saveError'));
+          setError(response.error?.message ?? t("saveError"));
           return;
         }
         router.push(`/admin/products/${response.result.data.id}`);
@@ -132,19 +164,19 @@ export function AdminProductForm({
       }
 
       if (!product) {
-        setError(t('saveError'));
+        setError(t("saveError"));
         return;
       }
 
       const response = await productsUpdate(product.id, payload);
       if (response.error || !response.result?.data) {
-        setError(response.error?.message ?? t('saveError'));
+        setError(response.error?.message ?? t("saveError"));
         return;
       }
 
       router.refresh();
     } catch {
-      setError(t('saveError'));
+      setError(t("saveError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -155,7 +187,7 @@ export function AdminProductForm({
       return;
     }
 
-    const confirmed = window.confirm(t('deleteConfirm'));
+    const confirmed = window.confirm(t("deleteConfirm"));
     if (!confirmed) {
       return;
     }
@@ -165,13 +197,13 @@ export function AdminProductForm({
     try {
       const response = await productsDelete(product.id);
       if (response.error) {
-        setError(response.error.message ?? t('deleteError'));
+        setError(response.error.message ?? t("deleteError"));
         return;
       }
-      router.push('/admin/products');
+      router.push("/admin/products");
       router.refresh();
     } catch {
-      setError(t('deleteError'));
+      setError(t("deleteError"));
     } finally {
       setIsDeleting(false);
     }
@@ -187,19 +219,22 @@ export function AdminProductForm({
     try {
       const formData = new FormData();
       Array.from(fileList).forEach((file) => {
-        formData.append('files', file);
+        formData.append("files", file);
       });
 
       const response = await productsUploadImages(product.id, formData);
       if (response.error || !response.result?.data) {
-        setError(response.error?.message ?? t('uploadError'));
+        setError(response.error?.message ?? t("uploadError"));
         return;
       }
 
-      setImages((previous) => [...previous, ...response.result!.data!]);
+      const uploaded = response.result.data;
+      if (uploaded) {
+        setImages((previous) => [...previous, ...uploaded]);
+      }
       router.refresh();
     } catch {
-      setError(t('uploadError'));
+      setError(t("uploadError"));
     } finally {
       setIsUploading(false);
     }
@@ -216,7 +251,7 @@ export function AdminProductForm({
         fileIds: [fileId],
       });
       if (response.error) {
-        setError(response.error.message ?? t('deleteImageError'));
+        setError(response.error.message ?? t("deleteImageError"));
         return;
       }
       setImages((previous) =>
@@ -224,7 +259,7 @@ export function AdminProductForm({
       );
       router.refresh();
     } catch {
-      setError(t('deleteImageError'));
+      setError(t("deleteImageError"));
     }
   };
 
@@ -232,179 +267,217 @@ export function AdminProductForm({
     <section className={styles.page}>
       <div className={styles.header}>
         <h1 className={styles.title}>
-          {mode === 'create' ? t('createProductTitle') : t('editProductTitle')}
+          {mode === "create" ? t("createProductTitle") : t("editProductTitle")}
         </h1>
       </div>
 
-      <form className={styles.form} onSubmit={onSubmit} noValidate>
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="product-name">
-            {t('fieldName')}
-          </label>
-          <input
-            id="product-name"
-            className={styles.input}
-            value={form.name}
-            onChange={(event) => updateField('name', event.target.value)}
-            required
-          />
-        </div>
+      <form className={styles.stack} onSubmit={onSubmit} noValidate>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("sectionBasicsTitle")}</CardTitle>
+            <CardDescription>{t("sectionBasicsDescription")}</CardDescription>
+          </CardHeader>
+          <CardContent className={styles.sectionBody}>
+            <div className={styles.field}>
+              <Label htmlFor="product-name">{t("fieldName")}</Label>
+              <Input
+                id="product-name"
+                value={form.name}
+                onChange={(event) => updateField("name", event.target.value)}
+                required
+              />
+            </div>
 
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="product-slug">
-            {t('fieldSlug')}
-          </label>
-          <input
-            id="product-slug"
-            className={styles.input}
-            value={form.slug}
-            onChange={(event) => updateField('slug', event.target.value)}
-            placeholder={t('slugPlaceholder')}
-          />
-        </div>
+            <div className={styles.field}>
+              <Label htmlFor="product-slug">{t("fieldSlug")}</Label>
+              <Input
+                id="product-slug"
+                value={form.slug}
+                onChange={(event) => updateField("slug", event.target.value)}
+                placeholder={t("slugPlaceholder")}
+              />
+            </div>
 
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="product-description">
-            {t('fieldDescription')}
-          </label>
-          <textarea
-            id="product-description"
-            className={styles.textarea}
-            value={form.description}
-            onChange={(event) => updateField('description', event.target.value)}
-          />
-        </div>
+            <div className={styles.field}>
+              <Label htmlFor="product-description">
+                {t("fieldDescription")}
+              </Label>
+              <Textarea
+                id="product-description"
+                value={form.description}
+                onChange={(event) =>
+                  updateField("description", event.target.value)
+                }
+              />
+            </div>
 
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="product-note">
-            {t('fieldNote')}
-          </label>
-          <textarea
-            id="product-note"
-            className={styles.textarea}
-            value={form.note}
-            onChange={(event) => updateField('note', event.target.value)}
-          />
-        </div>
+            <div className={styles.field}>
+              <Label htmlFor="product-note">{t("fieldNote")}</Label>
+              <Textarea
+                id="product-note"
+                value={form.note}
+                onChange={(event) => updateField("note", event.target.value)}
+              />
+            </div>
 
-        <div className={styles.grid2}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="product-price">
-              {t('fieldPrice')}
-            </label>
-            <input
-              id="product-price"
-              className={styles.input}
-              value={form.price}
-              onChange={(event) => updateField('price', event.target.value)}
-              required
-            />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="product-kkal">
-              {t('fieldKkal')}
-            </label>
-            <input
-              id="product-kkal"
-              className={styles.input}
-              value={form.manualKkal}
-              onChange={(event) => updateField('manualKkal', event.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-        <div className={styles.grid2}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="product-protein">
-              {t('fieldProtein')}
-            </label>
-            <input
-              id="product-protein"
-              className={styles.input}
-              type="number"
-              step="any"
-              value={form.protein}
-              onChange={(event) => updateField('protein', event.target.value)}
-              required
-            />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="product-fats">
-              {t('fieldFats')}
-            </label>
-            <input
-              id="product-fats"
-              className={styles.input}
-              type="number"
-              step="any"
-              value={form.fats}
-              onChange={(event) => updateField('fats', event.target.value)}
-              required
-            />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="product-carbs">
-              {t('fieldCarbs')}
-            </label>
-            <input
-              id="product-carbs"
-              className={styles.input}
-              type="number"
-              step="any"
-              value={form.carbohydrates}
-              onChange={(event) =>
-                updateField('carbohydrates', event.target.value)
-              }
-              required
-            />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="product-unit">
-              {t('fieldUnit')}
-            </label>
-            <select
-              id="product-unit"
-              className={styles.select}
-              value={form.measurementUnitId}
-              onChange={(event) =>
-                updateField('measurementUnitId', event.target.value)
-              }
-              required
-            >
-              <option value="">{t('unitPlaceholder')}</option>
-              {measurementUnits.map((unit) => (
-                <option key={unit.id} value={unit.id}>
-                  {unit.name} ({unit.symbol})
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className={styles.field}>
-          <p className={styles.label}>{t('fieldCategories')}</p>
-          <div className={styles.categories}>
-            {categories.map((category) => (
-              <label key={category.id} className={styles.categoryRow}>
-                <input
-                  type="checkbox"
-                  checked={form.categoryIds.includes(category.id)}
-                  onChange={() => toggleCategory(category.id)}
+            <div className={styles.grid2}>
+              <div className={styles.field}>
+                <Label htmlFor="product-price">{t("fieldPrice")}</Label>
+                <Input
+                  id="product-price"
+                  value={form.price}
+                  onChange={(event) => updateField("price", event.target.value)}
+                  required
                 />
-                <span>{category.name}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+              </div>
+              <div className={styles.field}>
+                <Label htmlFor="product-unit">{t("fieldUnit")}</Label>
+                <Select
+                  value={form.measurementUnitId || null}
+                  onValueChange={(value) => {
+                    if (value) {
+                      updateField("measurementUnitId", String(value));
+                    }
+                  }}
+                >
+                  <Select.Trigger id="product-unit" className="w-full">
+                    <Select.Value placeholder={t("unitPlaceholder")} />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {measurementUnits.map((unit) => (
+                      <Select.Item key={unit.id} value={unit.id}>
+                        {unit.name} ({unit.symbol})
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("sectionNutritionTitle")}</CardTitle>
+            <CardDescription>
+              {t("sectionNutritionDescription")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className={styles.sectionBody}>
+            <div className={styles.field}>
+              <Label htmlFor="product-kkal">{t("fieldKkal")}</Label>
+              <Input
+                id="product-kkal"
+                inputMode="decimal"
+                value={form.manualKkal}
+                onChange={(event) =>
+                  updateField("manualKkal", event.target.value)
+                }
+                placeholder={t("kkalPlaceholder")}
+              />
+              <p className={styles.hint}>{t("kkalHint")}</p>
+            </div>
+
+            <div className={styles.grid2}>
+              <div className={styles.field}>
+                <Label htmlFor="product-protein">{t("fieldProtein")}</Label>
+                <Input
+                  id="product-protein"
+                  type="number"
+                  step="any"
+                  value={form.protein}
+                  onChange={(event) =>
+                    updateField("protein", event.target.value)
+                  }
+                />
+              </div>
+              <div className={styles.field}>
+                <Label htmlFor="product-fats">{t("fieldFats")}</Label>
+                <Input
+                  id="product-fats"
+                  type="number"
+                  step="any"
+                  value={form.fats}
+                  onChange={(event) => updateField("fats", event.target.value)}
+                />
+              </div>
+              <div className={styles.field}>
+                <Label htmlFor="product-carbs">{t("fieldCarbs")}</Label>
+                <Input
+                  id="product-carbs"
+                  type="number"
+                  step="any"
+                  value={form.carbohydrates}
+                  onChange={(event) =>
+                    updateField("carbohydrates", event.target.value)
+                  }
+                />
+              </div>
+            </div>
+
+            <div className={styles.preview} aria-live="polite">
+              <span className={styles.hint}>{t("caloriesPreviewLabel")}</span>
+              {caloriesPreview.kind === "unavailable" ? (
+                <span>{t("caloriesUnavailable")}</span>
+              ) : (
+                <>
+                  <span className={styles.previewValue}>
+                    {formatCaloriesValue(caloriesPreview.value)}
+                  </span>
+                  <span className={styles.hint}>
+                    {caloriesPreview.kind === "manual"
+                      ? t("caloriesPreviewManual")
+                      : t("caloriesPreviewCalculated")}
+                  </span>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("sectionCategoriesTitle")}</CardTitle>
+            <CardDescription>
+              {t("sectionCategoriesDescription")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className={styles.categories}>
+              {categories.map((category) => {
+                const checkboxId = `category-${category.id}`;
+                return (
+                  <div key={category.id} className={styles.categoryRow}>
+                    <Checkbox
+                      id={checkboxId}
+                      checked={form.categoryIds.includes(category.id)}
+                      onCheckedChange={(checked) => {
+                        const isChecked = Boolean(checked);
+                        const isSelected = form.categoryIds.includes(
+                          category.id,
+                        );
+                        if (isChecked !== isSelected) {
+                          toggleCategory(category.id);
+                        }
+                      }}
+                    />
+                    <Label htmlFor={checkboxId} className="font-normal">
+                      {category.name}
+                    </Label>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
 
         {error ? <p className={styles.error}>{error}</p> : null}
 
         <div className={styles.actions}>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? t('saving') : t('save')}
+            {isSubmitting ? t("saving") : t("save")}
           </Button>
-          {mode === 'edit' ? (
+          {mode === "edit" ? (
             <Button
               type="button"
               variant="outline"
@@ -413,63 +486,73 @@ export function AdminProductForm({
                 void onDelete();
               }}
             >
-              {isDeleting ? t('deleting') : t('delete')}
+              {isDeleting ? t("deleting") : t("delete")}
             </Button>
           ) : null}
         </div>
       </form>
 
-      {mode === 'edit' && product ? (
-        <div className={styles.form}>
-          <h2 className={styles.sectionTitle}>{t('imagesTitle')}</h2>
-          <div className={styles.uploadRow}>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              disabled={isUploading}
-              onChange={(event) => {
-                void onUpload(event.target.files);
-                event.target.value = '';
-              }}
-            />
-            {isUploading ? <span>{t('uploading')}</span> : null}
-          </div>
-
-          {images.length === 0 ? (
-            <p>{t('imagesEmpty')}</p>
-          ) : (
-            <div className={styles.images}>
-              {images.map((image) => {
-                const src = pickImageUrlByVariant(
-                  image.urls,
-                  'low',
-                  image.fileUrl,
-                );
-                return (
-                  <div key={image.id} className={styles.imageCard}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      className={styles.thumb}
-                      src={src}
-                      alt={image.originalName}
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        void onDeleteImage(image.fileId);
-                      }}
-                    >
-                      {t('deleteImage')}
-                    </Button>
-                  </div>
-                );
-              })}
+      {mode === "edit" && product ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("imagesTitle")}</CardTitle>
+            <CardDescription>{t("imagesSectionDescription")}</CardDescription>
+          </CardHeader>
+          <CardContent className={styles.sectionBody}>
+            <div className={styles.uploadRow}>
+              <Input
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={isUploading}
+                className="rounded-2xl file:mr-3"
+                onChange={(event) => {
+                  void onUpload(event.target.files);
+                  event.target.value = "";
+                }}
+              />
+              {isUploading ? (
+                <span className={styles.hint}>{t("uploading")}</span>
+              ) : null}
             </div>
-          )}
-        </div>
+
+            <Separator />
+
+            {images.length === 0 ? (
+              <p className={styles.hint}>{t("imagesEmpty")}</p>
+            ) : (
+              <div className={styles.images}>
+                {images.map((image) => {
+                  const src = pickImageUrlByVariant(
+                    image.urls,
+                    "low",
+                    image.fileUrl,
+                  );
+                  return (
+                    <div key={image.id} className={styles.imageCard}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        className={styles.thumb}
+                        src={src}
+                        alt={image.originalName}
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          void onDeleteImage(image.fileId);
+                        }}
+                      >
+                        {t("deleteImage")}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       ) : null}
     </section>
   );

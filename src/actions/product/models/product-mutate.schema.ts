@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 const nutritionalInfoSchema = z.object({
   protein: z.coerce.number(),
@@ -17,12 +17,37 @@ const slugSchema = z
   .max(255)
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 
+const createManualKkalSchema = z
+  .union([z.string(), z.number(), z.null()])
+  .optional()
+  .transform((value) => {
+    if (value === undefined || value === null) {
+      return null;
+    }
+    const normalized = String(value).trim();
+    return normalized === "" ? null : normalized;
+  });
+
+const updateManualKkalSchema = z
+  .union([z.string(), z.number(), z.null()])
+  .optional()
+  .transform((value) => {
+    if (value === undefined) {
+      return undefined;
+    }
+    if (value === null) {
+      return null;
+    }
+    const normalized = String(value).trim();
+    return normalized === "" ? null : normalized;
+  });
+
 export const ProductCreateInputSchema = z.object({
   name: z.string().min(1).max(255),
   slug: slugSchema.optional(),
   description: z.string().max(5000).nullable().optional(),
   note: z.string().max(2000).nullable().optional(),
-  manualKkal: z.union([z.string(), z.number()]).transform(String),
+  manualKkal: createManualKkalSchema,
   nutritionalInfo: nutritionalInfoSchema,
   price: z.union([z.string(), z.number()]).transform(String),
   priceVariants: z.array(priceVariantSchema).nullable().optional(),
@@ -31,11 +56,19 @@ export const ProductCreateInputSchema = z.object({
   collectionIds: z.array(z.string().uuid()).optional(),
 });
 
-export const ProductUpdateInputSchema = ProductCreateInputSchema.partial().extend(
-  {
-    name: z.string().min(1).max(255).optional(),
-  },
-);
+export const ProductUpdateInputSchema = z.object({
+  name: z.string().min(1).max(255).optional(),
+  slug: slugSchema.optional(),
+  description: z.string().max(5000).nullable().optional(),
+  note: z.string().max(2000).nullable().optional(),
+  manualKkal: updateManualKkalSchema,
+  nutritionalInfo: nutritionalInfoSchema.optional(),
+  price: z.union([z.string(), z.number()]).transform(String).optional(),
+  priceVariants: z.array(priceVariantSchema).nullable().optional(),
+  measurementUnitId: z.string().uuid().optional(),
+  categoryIds: z.array(z.string().uuid()).optional(),
+  collectionIds: z.array(z.string().uuid()).optional(),
+});
 
 export const ProductDeleteImagesInputSchema = z.object({
   fileIds: z.array(z.string().uuid()).min(1),

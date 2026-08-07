@@ -6,7 +6,17 @@
   "searchAriaLabel": "Search products",
   "searchPlaceholder": "Search by name, description or category",
   "moreDetails": "Details",
+  "kcal": "{value} kcal",
+  "kcalUnavailable": "No calorie data",
   "loadError": "Failed to load products",
   "loadErrorDescription": "Check your connection and try again",
-  "retry": "Retry"
+  "retry": "Retry",
+  "collectionsButton": "Collections",
+  "collectionsTitle": "Collections",
+  "collectionsDescription": "Pick a collection to see only its products",
+  "collectionsClearAriaLabel": "Clear collection",
+  "collectionsLoadError": "Failed to load collections",
+  "collectionsLoadErrorDescription": "Check your connection and try again",
+  "collectionsEmptyTitle": "No collections yet",
+  "collectionsEmptyDescription": "Collections will appear here when they are added"
 }

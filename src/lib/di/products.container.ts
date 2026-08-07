@@ -1,6 +1,7 @@
 import { SharpImageVariantProcessor } from "@modules/files/infrastructure/image-processing/sharp-image-variant-processor";
 import { PrismaFileRepository } from "@modules/files/infrastructure/persistence/repositories/file/prisma-file.repository";
 import { LocalDiskFileStorage } from "@modules/files/infrastructure/storage/local-disk-file-storage";
+import { GetCatalogStatsUseCase } from "@modules/products/application/use-cases/catalog-stats/get-catalog-stats.use-case";
 import { CreateCategoryUseCase } from "@modules/products/application/use-cases/category/create-category.use-case";
 import { FindCategoriesUseCase } from "@modules/products/application/use-cases/category/find-categories.use-case";
 import { FindMeasurementUnitsUseCase } from "@modules/products/application/use-cases/measurement-unit/find-measurement-units.use-case";
@@ -12,6 +13,8 @@ import { GetProductByIdUseCase } from "@modules/products/application/use-cases/p
 import { UpdateProductUseCase } from "@modules/products/application/use-cases/product/update-product.use-case";
 import { UploadProductImagesUseCase } from "@modules/products/application/use-cases/product/upload-product-images.use-case";
 import { FindProductCollectionsUseCase } from "@modules/products/application/use-cases/product-collection/find-product-collections.use-case";
+import { GetProductCollectionByIdUseCase } from "@modules/products/application/use-cases/product-collection/get-product-collection-by-id.use-case";
+import { PrismaCatalogStatsRepository } from "@modules/products/infrastructure/persistence/repositories/catalog-stats/prisma-catalog-stats.repository";
 import { PrismaCategoryRepository } from "@modules/products/infrastructure/persistence/repositories/category/prisma-category.repository";
 import { PrismaImageRepository } from "@modules/products/infrastructure/persistence/repositories/image/prisma-image.repository";
 import { PrismaMeasurementUnitRepository } from "@modules/products/infrastructure/persistence/repositories/measurement-unit/prisma-measurement-unit.repository";
@@ -33,6 +36,7 @@ export function createProductsContainer() {
   const fileRepository = new PrismaFileRepository(prisma);
   const fileStorage = new LocalDiskFileStorage();
   const imageVariantProcessor = new SharpImageVariantProcessor();
+  const catalogStatsRepository = new PrismaCatalogStatsRepository(prisma);
 
   return {
     createProduct: new CreateProductUseCase(
@@ -81,9 +85,13 @@ export function createProductsContainer() {
     findProductCollections: new FindProductCollectionsUseCase(
       productCollectionRepository,
     ),
+    getProductCollectionById: new GetProductCollectionByIdUseCase(
+      productCollectionRepository,
+    ),
     findMeasurementUnits: new FindMeasurementUnitsUseCase(
       measurementUnitRepository,
     ),
+    getCatalogStats: new GetCatalogStatsUseCase(catalogStatsRepository),
   };
 }
 

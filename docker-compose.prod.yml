@@ -25,12 +25,10 @@ services:
     ports:
       - '3001:3000'
     volumes:
-      - cuppcake_uploads:/app/public/uploads
+      # Bind mount so nginx can serve /uploads directly (Next standalone does not).
+      - ./uploads:/app/public/uploads
     networks:
       - my-master-network
-
-volumes:
-  cuppcake_uploads:
 
 networks:
   my-master-network:

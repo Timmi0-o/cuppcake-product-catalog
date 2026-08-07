@@ -4,7 +4,6 @@
   aspect-ratio: 4 / 5;
   overflow: hidden;
   background: var(--muted);
-  touch-action: pan-y;
   user-select: none;
 }
 
@@ -48,6 +47,22 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+}
+
+.swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.swiperSlide {
+  height: 100%;
+}
+
+.slideLink {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .indicators {

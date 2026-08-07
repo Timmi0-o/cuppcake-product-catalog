@@ -4,7 +4,7 @@ model Product {
   slug              String    @map("slug")
   description       String?   @map("description")
   note              String?   @map("note")
-  manualKkal        Decimal   @map("manual_kkal") @db.Decimal(12, 2)
+  manualKkal        Decimal?  @map("manual_kkal") @db.Decimal(12, 2)
   nutritionalInfo   Json      @map("nutritional_info")
   price             Decimal   @map("price") @db.Decimal(12, 2)
   priceVariants     Json?     @map("price_variants")

@@ -10,6 +10,7 @@ import {
   buildImageVariantFileName,
   IMAGE_VARIANT,
   IMAGE_VARIANT_MAX_WIDTH,
+  IMAGE_VARIANT_WEBP_EFFORT,
   IMAGE_VARIANT_WEBP_QUALITY,
   type ImageVariant,
 } from "../../domain/entities/file/image-variant";
@@ -50,7 +51,10 @@ export class SharpImageVariantProcessor implements IImageVariantProcessorPort {
           withoutEnlargement: true,
           fit: "inside",
         })
-        .webp({ quality: IMAGE_VARIANT_WEBP_QUALITY })
+        .webp({
+          quality: IMAGE_VARIANT_WEBP_QUALITY,
+          effort: IMAGE_VARIANT_WEBP_EFFORT,
+        })
         .toBuffer();
 
       files.push({

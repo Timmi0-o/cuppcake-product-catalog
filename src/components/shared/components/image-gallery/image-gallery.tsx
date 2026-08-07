@@ -154,6 +154,7 @@ export function ImageGallery({
                         sizes="100vw"
                         className={styles.lightboxImage}
                         priority={index === activeIndex}
+                        unoptimized
                       />
                     </div>
                   </SwiperSlide>
@@ -223,6 +224,7 @@ export function ImageGallery({
                   priority={index === 0}
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className={styles.slideImage}
+                  unoptimized
                 />
               </button>
             </SwiperSlide>
@@ -262,6 +264,7 @@ export function ImageGallery({
                   fill
                   sizes="72px"
                   className={styles.slideImage}
+                  unoptimized
                 />
               </button>
             </SwiperSlide>

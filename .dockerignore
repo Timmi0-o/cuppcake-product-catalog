@@ -13,6 +13,7 @@ deploy
 scripts/deploy-*.sh
 prisma/.seed-image-cache
 public/uploads
+!public/uploads/.gitkeep
 coverage
 .turbo
 .vscode

@@ -1,15 +1,9 @@
-import { categoriesGetMany } from '@/actions/category/actions';
-import { CatalogContent } from '@/components/pages/catalog/components/catalog-content/catalog-content';
+import { categoriesGetMany } from "@/actions/category/actions";
+import { CatalogContentWithSuspense } from "@/components/pages/catalog/components/catalog-content/catalog-content";
 
-type CatalogPageProps = {
-  categorySlug?: string;
-};
-
-export async function CatalogPage({ categorySlug }: CatalogPageProps) {
+export async function CatalogPage() {
   const categoriesResponse = await categoriesGetMany();
   const categories = categoriesResponse.result?.data ?? [];
 
-  return (
-    <CatalogContent categories={categories} categorySlug={categorySlug} />
-  );
+  return <CatalogContentWithSuspense categories={categories} />;
 }

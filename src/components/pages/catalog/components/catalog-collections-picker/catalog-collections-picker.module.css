@@ -1,0 +1,37 @@
+@reference "@/tailwindcss";
+
+.root {
+  @apply flex flex-wrap items-center gap-2;
+}
+
+.trigger {
+  @apply min-h-11 px-5 text-[0.95rem] font-semibold tracking-wide shadow-[0_2px_8px_rgb(0_0_0_/_0.12)];
+}
+
+.chip {
+  @apply inline-flex max-w-full items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium tracking-wide;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.chipLabel {
+  @apply truncate;
+}
+
+.chipClear {
+  @apply inline-flex size-5 shrink-0 items-center justify-center rounded-full transition-colors;
+  background: color-mix(in oklab, var(--primary-foreground) 16%, transparent);
+}
+
+.chipClear:hover {
+  background: color-mix(in oklab, var(--primary-foreground) 28%, transparent);
+}
+
+.chipClearIcon {
+  @apply size-3.5;
+}
+
+.chipSkeleton {
+  @apply h-8 w-28 animate-pulse rounded-full;
+  background: var(--secondary);
+}

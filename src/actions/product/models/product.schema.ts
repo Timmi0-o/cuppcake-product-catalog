@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const ProductImageSchema = z.object({
   id: z.string(),
@@ -47,7 +47,7 @@ export const ProductSchema = z.object({
   slug: z.string(),
   description: z.string().nullable(),
   note: z.string().nullable(),
-  manualKkal: z.string(),
+  manualKkal: z.string().nullable(),
   nutritionalInfo: ProductNutritionalInfoSchema,
   price: z.string(),
   priceVariants: z.array(ProductPriceVariantSchema).nullable(),
