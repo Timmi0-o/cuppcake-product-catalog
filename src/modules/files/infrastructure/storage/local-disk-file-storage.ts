@@ -1,7 +1,6 @@
 import { createHash } from 'node:crypto';
 import { mkdir, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { appConfig } from '@shared/infrastructure/config';
 import type {
   IFileStoragePort,
   SaveFileInput,
@@ -10,7 +9,8 @@ import type {
 
 export class LocalDiskFileStorage implements IFileStoragePort {
   private rootDir() {
-    return path.resolve(process.cwd(), appConfig.uploadDir);
+    // Static `public/uploads` keeps Turbopack file tracing scoped (UPLOAD_DIR is this folder).
+    return path.join(process.cwd(), 'public', 'uploads');
   }
 
   async save(input: SaveFileInput): Promise<SavedFileResult> {

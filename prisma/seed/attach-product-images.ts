@@ -261,7 +261,7 @@ export async function attachImagesToProducts(
       const urls: string[] = [];
       let originalFileName = '';
       let originalMimeType = '';
-      let originalFileSize = 0n;
+      let originalFileSize = BigInt(0);
       let originalChecksum = '';
       let originalFileUrl = '';
 
