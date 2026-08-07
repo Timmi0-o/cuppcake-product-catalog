@@ -38,6 +38,8 @@ yarn-error.log*
 /public/uploads/**
 !/public/uploads/.gitkeep
 
+# seed image download cache
+/prisma/.seed-image-cache/
 # vercel
 .vercel
 

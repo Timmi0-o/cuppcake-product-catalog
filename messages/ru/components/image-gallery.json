@@ -1,0 +1,7 @@
+{
+  "openFullscreen": "Открыть на весь экран",
+  "closeFullscreen": "Закрыть",
+  "previousImage": "Предыдущее фото",
+  "nextImage": "Следующее фото",
+  "goToImage": "Фото {index}"
+}

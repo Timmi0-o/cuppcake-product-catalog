@@ -9,12 +9,12 @@ export class GetProductByIdUseCase {
   async execute(
     input: IGetProductByIdApplicationInput,
   ): Promise<IProductPublicEntity> {
-    const product = await this.productRepository.findPublicById(
-      input.productId,
+    const product = await this.productRepository.findPublicByIdOrSlug(
+      input.productIdOrSlug,
       { includeImages: input.includeImages ?? true },
     );
     if (!product) {
-      throw new ProductNotFoundError(input.productId);
+      throw new ProductNotFoundError(input.productIdOrSlug);
     }
     return product;
   }

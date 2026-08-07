@@ -1,3 +1,4 @@
+import { CategoryNotFoundError } from '../../../domain/entities/category';
 import type { ICategoryPublicEntity } from '../../../domain/entities/category';
 import type { ICategoryRepository } from '../../../domain/repositories/category/i-category.repository';
 import type { ITransactionManager } from '@shared/domain/transactions';
@@ -12,12 +13,22 @@ export class CreateCategoryUseCase {
   async execute(
     input: ICreateCategoryApplicationInput,
   ): Promise<ICategoryPublicEntity> {
+    if (input.parentCategoryId) {
+      const parent = await this.categoryRepository.findById(
+        input.parentCategoryId,
+      );
+      if (!parent) {
+        throw new CategoryNotFoundError(input.parentCategoryId);
+      }
+    }
+
     return this.transactionManager.runInTransaction(async (scope) => {
       const category = await this.categoryRepository.create(
         {
           name: input.name,
           slug: input.slug,
           sortOrder: input.sortOrder,
+          parentCategoryId: input.parentCategoryId ?? null,
         },
         scope,
       );
@@ -26,6 +37,7 @@ export class CreateCategoryUseCase {
         name: category.name,
         slug: category.slug,
         sortOrder: category.sortOrder,
+        parentCategoryId: category.parentCategoryId,
       };
     });
   }

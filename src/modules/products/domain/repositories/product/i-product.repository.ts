@@ -19,8 +19,9 @@ export interface IProductRepository {
   ): Promise<IProductEntity>;
   softDelete(id: string, scope?: TransactionScope): Promise<void>;
   findById(id: string): Promise<IProductEntity | null>;
-  findPublicById(
-    id: string,
+  findByIdOrSlug(idOrSlug: string): Promise<IProductEntity | null>;
+  findPublicByIdOrSlug(
+    idOrSlug: string,
     options?: { includeImages?: boolean },
   ): Promise<IProductPublicEntity | null>;
   findMany(

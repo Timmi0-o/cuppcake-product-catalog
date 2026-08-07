@@ -8,6 +8,7 @@ import type {
 export interface ICategoryRepository {
   findManyPublic(): Promise<ICategoryPublicEntity[]>;
   findById(id: string): Promise<ICategoryEntity | null>;
+  findBySlug(slug: string): Promise<ICategoryEntity | null>;
   findByIds(ids: string[]): Promise<ICategoryEntity[]>;
   create(
     input: ICreateCategoryInput,

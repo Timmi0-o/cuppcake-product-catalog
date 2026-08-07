@@ -1,0 +1,12 @@
+model ProductCollectionProduct {
+  productId            String @map("product_id")
+  productCollectionId  String @map("product_collection_id")
+
+  product            Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productCollection  ProductCollection  @relation(fields: [productCollectionId], references: [id], onDelete: Cascade)
+
+  @@id([productId, productCollectionId])
+  @@unique([productId, productCollectionId])
+  @@index([productCollectionId])
+  @@map("ProductCollectionProducts")
+}

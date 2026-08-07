@@ -1,35 +1,34 @@
+import { productsGetOne } from '@/actions/product/actions';
 import { ProductGallery } from '@/components/pages/product/components/product-gallery/product-gallery';
 import { Badge } from '@/components/shared/ui/badge';
 import { Button } from '@/components/shared/ui/button';
 import { Separator } from '@/components/shared/ui/separator';
 import { INTL_LOCALES, isAppLocale } from '@/constants/locales';
 import { Link } from '@/helpers/i18n/routing';
-import { createProductsContainer } from '@/lib/di/products.container';
-import { formatProductPrice } from '@/utils/format-price.util';
+import { formatProductPriceWithVariants } from '@/utils/format-price.util';
 import { ArrowLeft } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 
 type ProductPageProps = {
-  productId: string;
+  productSlug: string;
 };
 
-export async function ProductPage({ productId }: ProductPageProps) {
-  const { getProductById } = createProductsContainer();
+export async function ProductPage({ productSlug }: ProductPageProps) {
   const [t, locale] = await Promise.all([
     getTranslations('pages.product'),
     getLocale(),
   ]);
-  const priceLocale = isAppLocale(locale) ? INTL_LOCALES[locale] : INTL_LOCALES.ru;
+  const priceLocale = isAppLocale(locale)
+    ? INTL_LOCALES[locale]
+    : INTL_LOCALES.ru;
 
-  const product = await getProductById
-    .execute({
-      productId,
-      includeImages: true,
-    })
-    .catch(() => null);
+  const productResponse = await productsGetOne(productSlug, {
+    filters: { includeImages: true },
+  });
+  const product = productResponse.result?.data;
 
-  if (!product) {
+  if (!product || productResponse.error) {
     notFound();
   }
 
@@ -46,11 +45,13 @@ export async function ProductPage({ productId }: ProductPageProps) {
         {t('backToCatalog')}
       </Button>
 
-      <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
-        <ProductGallery
-          images={product.images ?? []}
-          productName={product.name}
-        />
+      <div className="grid min-w-0 gap-10 lg:grid-cols-2 lg:gap-14">
+        <div className="min-w-0">
+          <ProductGallery
+            images={product.images ?? []}
+            productName={product.name}
+          />
+        </div>
 
         <div className="animate-in fade-in slide-in-from-right-2 space-y-6 duration-500">
           <div className="space-y-3">
@@ -63,13 +64,20 @@ export async function ProductPage({ productId }: ProductPageProps) {
               {product.name}
             </h1>
             <p className="text-2xl font-medium tracking-tight text-primary">
-              {formatProductPrice(
+              {formatProductPriceWithVariants(
                 product.price,
                 product.measurementUnit.symbol,
+                product.priceVariants,
                 priceLocale,
               )}
             </p>
           </div>
+
+          {product.note ? (
+            <p className="text-sm leading-relaxed text-muted-foreground italic">
+              {product.note}
+            </p>
+          ) : null}
 
           {product.description ? (
             <p className="text-base leading-relaxed text-muted-foreground">

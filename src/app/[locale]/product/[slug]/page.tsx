@@ -2,13 +2,13 @@ import { ProductPage } from '@/components/pages/product/product-page';
 import { setRequestLocale } from 'next-intl/server';
 
 type ProductRoutePageProps = {
-  params: Promise<{ locale: string; id: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 };
 
 export default async function ProductRoutePage({
   params,
 }: ProductRoutePageProps) {
-  const { locale, id } = await params;
+  const { locale, slug } = await params;
   setRequestLocale(locale);
-  return <ProductPage productId={id} />;
+  return <ProductPage productSlug={slug} />;
 }

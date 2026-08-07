@@ -24,6 +24,8 @@ export async function GET(request: Request) {
     const query = findProductsQuerySchema.parse({
       name: url.searchParams.get('name') ?? undefined,
       categoryId: url.searchParams.get('categoryId') ?? undefined,
+      categorySlug: url.searchParams.get('categorySlug') ?? undefined,
+      collectionId: url.searchParams.get('collectionId') ?? undefined,
       limit: url.searchParams.get('limit') ?? undefined,
       offset: url.searchParams.get('offset') ?? undefined,
       includeImages: url.searchParams.get('includeImages') ?? undefined,

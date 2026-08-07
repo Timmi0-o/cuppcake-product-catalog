@@ -1,15 +1,15 @@
 export enum FileStatus {
-  PENDING = 'PENDING',
-  UPLOADED = 'UPLOADED',
+  PENDING = "PENDING",
+  UPLOADED = "UPLOADED",
 }
 
 export enum FileType {
-  IMAGE = 'IMAGE',
-  DOCUMENT = 'DOCUMENT',
+  IMAGE = "IMAGE",
+  DOCUMENT = "DOCUMENT",
 }
 
 export enum FilePurpose {
-  PRODUCT_IMAGE = 'PRODUCT_IMAGE',
+  PRODUCT_IMAGE = "PRODUCT_IMAGE",
 }
 
 export type IFileEntity = {

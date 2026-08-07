@@ -1,32 +1,28 @@
-import { randomUUID } from 'node:crypto';
+import type { IFileStoragePort } from "@modules/files/application/ports/i-file-storage.port";
+import type { IImageVariantProcessorPort } from "@modules/files/application/ports/i-image-variant-processor.port";
 import {
   FilePurpose,
   FileStatus,
   FileTooLargeError,
   FileType,
-  InvalidFileTypeError,
-} from '@modules/files/domain/entities/file';
-import type { IFileRepository } from '@modules/files/domain/repositories/file';
-import type { IFileStoragePort } from '@modules/files/application/ports/i-file-storage.port';
-import {
-  calculateChecksum,
-  detectImageMimeType,
-  extensionForMime,
-} from '@modules/files/infrastructure/storage/local-disk-file-storage';
-import { appConfig } from '@shared/infrastructure/config';
-import type { ITransactionManager } from '@shared/domain/transactions';
+  type ProductImageFileMetadata,
+} from "@modules/files/domain/entities/file";
+import type { IFileRepository } from "@modules/files/domain/repositories/file";
+import { calculateChecksum } from "@modules/files/infrastructure/storage/local-disk-file-storage";
+import type { ITransactionManager } from "@shared/domain/transactions";
+import { appConfig } from "@shared/infrastructure/config";
 import {
   ensureImageMaxCount,
   IMAGE_ENTITY_CONFIG,
   ImageEntityType,
-} from '../../../domain/entities/image';
+} from "../../../domain/entities/image";
 import {
-  ProductNotFoundError,
   type IProductImagePublic,
-} from '../../../domain/entities/product';
-import type { IImageRepository } from '../../../domain/repositories/image/i-image.repository';
-import type { IProductRepository } from '../../../domain/repositories/product/i-product.repository';
-import type { IUploadProductImagesApplicationInput } from '../../dtos/product.dtos';
+  ProductNotFoundError,
+} from "../../../domain/entities/product";
+import type { IImageRepository } from "../../../domain/repositories/image/i-image.repository";
+import type { IProductRepository } from "../../../domain/repositories/product/i-product.repository";
+import type { IUploadProductImagesApplicationInput } from "../../dtos/product.dtos";
 
 export class UploadProductImagesUseCase {
   constructor(
@@ -35,19 +31,22 @@ export class UploadProductImagesUseCase {
     private readonly imageRepository: IImageRepository,
     private readonly fileRepository: IFileRepository,
     private readonly fileStorage: IFileStoragePort,
+    private readonly imageVariantProcessor: IImageVariantProcessorPort,
   ) {}
 
   async execute(
     input: IUploadProductImagesApplicationInput,
   ): Promise<IProductImagePublic[]> {
-    const product = await this.productRepository.findById(input.productId);
+    const product = await this.productRepository.findByIdOrSlug(
+      input.productIdOrSlug,
+    );
     if (!product) {
-      throw new ProductNotFoundError(input.productId);
+      throw new ProductNotFoundError(input.productIdOrSlug);
     }
 
     const currentCount = await this.imageRepository.countByEntity(
       ImageEntityType.PRODUCT,
-      input.productId,
+      product.id,
     );
     ensureImageMaxCount(
       ImageEntityType.PRODUCT,
@@ -56,7 +55,21 @@ export class UploadProductImagesUseCase {
     );
 
     const config = IMAGE_ENTITY_CONFIG[ImageEntityType.PRODUCT];
-    const prepared = input.files.map((file) => {
+    const relativeDirectory = `products/${product.id}`;
+
+    type PreparedUpload = {
+      originalName: string;
+      originalMimeType: string;
+      originalFileName: string;
+      originalFileSize: bigint;
+      originalChecksum: string;
+      originalPublicUrl: string;
+      urls: string[];
+    };
+
+    const preparedUploads: PreparedUpload[] = [];
+
+    for (const file of input.files) {
       if (file.buffer.byteLength > appConfig.uploadMaxFileSizeBytes) {
         throw new FileTooLargeError(
           file.buffer.byteLength,
@@ -64,63 +77,72 @@ export class UploadProductImagesUseCase {
         );
       }
 
-      const mimeType = detectImageMimeType(file.buffer);
-      if (!mimeType) {
-        throw new InvalidFileTypeError(file.originalName);
+      const processed = await this.imageVariantProcessor.process({
+        buffer: file.buffer,
+        originalName: file.originalName,
+      });
+
+      const urls: string[] = [];
+      let originalPublicUrl = "";
+      let originalFileName = "";
+      let originalMimeType = "";
+      let originalFileSize = 0n;
+      let originalChecksum = "";
+
+      for (const variantFile of processed.files) {
+        const saved = await this.fileStorage.save({
+          relativeDirectory,
+          fileName: variantFile.fileName,
+          buffer: variantFile.buffer,
+        });
+        urls.push(saved.publicUrl);
+
+        if (variantFile.variant === "original") {
+          originalPublicUrl = saved.publicUrl;
+          originalFileName = variantFile.fileName;
+          originalMimeType = variantFile.mimeType;
+          originalFileSize = BigInt(variantFile.buffer.byteLength);
+          originalChecksum = calculateChecksum(variantFile.buffer);
+        }
       }
 
-      const fileName = `${randomUUID()}.${extensionForMime(mimeType)}`;
-      return {
-        originalName: file.originalName,
-        buffer: file.buffer,
-        mimeType,
-        fileName,
-        checksum: calculateChecksum(file.buffer),
-        fileSize: BigInt(file.buffer.byteLength),
-      };
-    });
-
-    const savedFiles: Array<{
-      originalName: string;
-      buffer: Buffer;
-      mimeType: string;
-      fileName: string;
-      checksum: string;
-      fileSize: bigint;
-      publicUrl: string;
-    }> = [];
-    for (const file of prepared) {
-      const saved = await this.fileStorage.save({
-        relativeDirectory: `products/${input.productId}`,
-        fileName: file.fileName,
-        buffer: file.buffer,
+      preparedUploads.push({
+        originalName: processed.originalName,
+        originalMimeType,
+        originalFileName,
+        originalFileSize,
+        originalChecksum,
+        originalPublicUrl,
+        urls,
       });
-      savedFiles.push({ ...file, publicUrl: saved.publicUrl });
     }
 
     return this.transactionManager.runInTransaction(async (scope) => {
       const files = await this.fileRepository.createMany(
-        savedFiles.map((file) => ({
-          uploadedBy: input.actorUserId,
-          fileName: file.fileName,
-          originalName: file.originalName,
-          mimeType: file.mimeType,
-          fileSize: file.fileSize,
-          fileUrl: file.publicUrl,
-          checksum: file.checksum,
-          status: FileStatus.UPLOADED,
-          fileType: config.fileType ?? FileType.IMAGE,
-          purpose: config.purpose ?? FilePurpose.PRODUCT_IMAGE,
-          metadata: null,
-          tags: [],
-        })),
+        preparedUploads.map((upload) => {
+          const metadata: ProductImageFileMetadata = { urls: upload.urls };
+          return {
+            uploadedBy: input.actorUserId,
+            fileName: upload.originalFileName,
+            originalName: upload.originalName,
+            mimeType: upload.originalMimeType,
+            fileSize: upload.originalFileSize,
+            fileUrl: upload.originalPublicUrl,
+            checksum: upload.originalChecksum,
+            status: FileStatus.UPLOADED,
+            fileType: config.fileType ?? FileType.IMAGE,
+            purpose: config.purpose ?? FilePurpose.PRODUCT_IMAGE,
+            metadata,
+            tags: [],
+          };
+        }),
         scope,
       );
 
       const images = await this.imageRepository.createMany(
         files.map((file) => ({
           entityType: ImageEntityType.PRODUCT,
-          entityId: input.productId,
+          entityId: product.id,
           fileId: file.id,
         })),
         scope,
@@ -128,10 +150,15 @@ export class UploadProductImagesUseCase {
 
       return images.map((image, index) => {
         const file = files[index];
+        const upload = preparedUploads[index];
+        if (!file || !upload) {
+          throw new Error("Upload mapping mismatch between files and images");
+        }
         return {
           id: image.id,
           fileId: file.id,
           fileUrl: file.fileUrl,
+          urls: upload.urls,
           originalName: file.originalName,
           mimeType: file.mimeType,
           status: file.status,

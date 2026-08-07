@@ -12,5 +12,5 @@ export default async function CatalogRoutePage({
 }: CatalogRoutePageProps) {
   const [{ locale }, { category }] = await Promise.all([params, searchParams]);
   setRequestLocale(locale);
-  return <CatalogPage categoryId={category} />;
+  return <CatalogPage categorySlug={category} />;
 }

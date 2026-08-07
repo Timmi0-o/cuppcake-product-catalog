@@ -1,0 +1,12 @@
+model ProductCollection {
+  id        String    @id @default(uuid())
+  name      String    @map("name")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  products ProductCollectionProduct[]
+
+  @@index([deletedAt])
+  @@map("ProductCollections")
+}

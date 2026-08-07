@@ -50,7 +50,7 @@ export async function POST(request: Request, context: RouteContext) {
     const { uploadProductImages } = createProductsContainer();
     const output = await uploadProductImages.execute(
       requestMultipartToUploadProductImagesUseCaseInput({
-        productId: id,
+        productIdOrSlug: id,
         actor,
         files,
       }),

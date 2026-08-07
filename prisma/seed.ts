@@ -1,6 +1,20 @@
 import 'dotenv/config';
+import bcrypt from 'bcryptjs';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
+import { CATALOG_SEED_PRODUCTS } from './data/catalog-products.seed-data';
+import {
+  DRINK_COLLECTIONS,
+  DRINK_SEED_PRODUCTS,
+} from './data/drinks-menu.seed-data';
+import { ensureUniqueSlug, slugify } from '../src/utils/slugify.util';
+import {
+  attachImagesToProducts,
+  clearProductUploadDirectory,
+} from './seed/attach-product-images';
+
+const SEED_UPLOADER_EMAIL = 'seed-uploader@cuppcake.local';
+const SEED_UPLOADER_PASSWORD = 'seed-uploader-password';
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -29,7 +43,10 @@ const CATEGORIES = [
   { name: 'Протеиновые', slug: 'proteinovye', sortOrder: 150 },
   { name: 'Постные', slug: 'postnye', sortOrder: 160 },
   { name: 'Без глютена', slug: 'bez-glyutena', sortOrder: 170 },
-];
+  { name: 'Напитки', slug: 'napitki', sortOrder: 180 },
+] as const;
+
+const MIN_PRODUCTS_PER_CATEGORY = 7;
 
 async function main() {
   const kg = await prisma.measurementUnit.upsert({
@@ -44,6 +61,18 @@ async function main() {
     create: { name: 'штука', symbol: 'шт' },
   });
 
+  const milliliter = await prisma.measurementUnit.upsert({
+    where: { symbol: 'мл' },
+    update: { name: 'миллилитр' },
+    create: { name: 'миллилитр', symbol: 'мл' },
+  });
+
+  const unitByKey = {
+    kg: kg.id,
+    piece: piece.id,
+    ml: milliliter.id,
+  } as const;
+
   for (const category of CATEGORIES) {
     await prisma.category.upsert({
       where: { slug: category.slug },
@@ -51,82 +80,197 @@ async function main() {
         name: category.name,
         sortOrder: category.sortOrder,
         deletedAt: null,
+        parentCategoryId: null,
       },
-      create: category,
+      create: {
+        name: category.name,
+        slug: category.slug,
+        sortOrder: category.sortOrder,
+      },
     });
   }
 
-  const biscuit = await prisma.category.findUniqueOrThrow({
-    where: { slug: 'biskvitnye-torty' },
+  const categories = await prisma.category.findMany({
+    where: { deletedAt: null },
+    select: { id: true, slug: true },
   });
-  const cheesecake = await prisma.category.findUniqueOrThrow({
-    where: { slug: 'chizkejki' },
-  });
-  const bento = await prisma.category.findUniqueOrThrow({
-    where: { slug: 'bento' },
-  });
+  const categoryIdBySlug = new Map(
+    categories.map((category) => [category.slug, category.id]),
+  );
 
-  const existing = await prisma.product.count();
-  if (existing === 0) {
-    const samples = [
-      {
-        name: 'Сникерс',
-        description:
-          'Солёная карамель, арахисовая паста, шоколадный ганаш, бисквит.',
-        manualKkal: '320',
-        nutritionalInfo: { protein: 8, fats: 18, carbohydrates: 28 },
-        price: '2300',
-        measurementUnitId: kg.id,
-        categoryIds: [biscuit.id],
-      },
-      {
-        name: 'Прага',
-        description: 'Классический шоколадный бисквит с абрикосовым конфи.',
-        manualKkal: '290',
-        nutritionalInfo: { protein: 6, fats: 14, carbohydrates: 32 },
-        price: '2100',
-        measurementUnitId: kg.id,
-        categoryIds: [biscuit.id],
-      },
-      {
-        name: 'Нью-Йорк',
-        description: 'Плотный чизкейк на песочной основе с ванилью.',
-        manualKkal: '340',
-        nutritionalInfo: { protein: 9, fats: 22, carbohydrates: 24 },
-        price: '2500',
-        measurementUnitId: kg.id,
-        categoryIds: [cheesecake.id],
-      },
-      {
-        name: 'Бенто «Ягода»',
-        description: 'Мини-торт с ягодным муссом, на 2–3 человека.',
-        manualKkal: '180',
-        nutritionalInfo: { protein: 4, fats: 9, carbohydrates: 20 },
-        price: '1200',
-        measurementUnitId: piece.id,
-        categoryIds: [bento.id],
-      },
-    ] as const;
-
-    for (const sample of samples) {
-      const product = await prisma.product.create({
-        data: {
-          name: sample.name,
-          description: sample.description,
-          manualKkal: sample.manualKkal,
-          nutritionalInfo: sample.nutritionalInfo,
-          price: sample.price,
-          measurementUnitId: sample.measurementUnitId,
-          categories: {
-            create: sample.categoryIds.map((categoryId) => ({ categoryId })),
-          },
-        },
-      });
-      console.log(`Seeded product ${product.name}`);
+  for (const product of CATALOG_SEED_PRODUCTS) {
+    for (const slug of product.categorySlugs) {
+      if (!categoryIdBySlug.has(slug)) {
+        throw new Error(`Unknown category slug in seed data: ${slug}`);
+      }
     }
   }
 
-  console.log('Seed complete', { kg: kg.symbol, piece: piece.symbol });
+  const drinksCategoryId = categoryIdBySlug.get('napitki');
+  if (!drinksCategoryId) {
+    throw new Error('Drinks category napitki is missing');
+  }
+
+  const usedProductSlugs = new Set<string>();
+
+  const seedUploaderPasswordHash = await bcrypt.hash(
+    SEED_UPLOADER_PASSWORD,
+    10,
+  );
+  const seedUploader = await prisma.user.upsert({
+    where: { email: SEED_UPLOADER_EMAIL },
+    update: {
+      passwordHash: seedUploaderPasswordHash,
+      deletedAt: null,
+    },
+    create: {
+      email: SEED_UPLOADER_EMAIL,
+      passwordHash: seedUploaderPasswordHash,
+    },
+  });
+
+  await clearProductUploadDirectory();
+
+  await prisma.$transaction(async (tx) => {
+    await tx.image.deleteMany({ where: { entityType: 'PRODUCT' } });
+    await tx.file.deleteMany({ where: { purpose: 'PRODUCT_IMAGE' } });
+    await tx.productCollectionProduct.deleteMany();
+    await tx.productCategory.deleteMany();
+    await tx.product.deleteMany();
+    await tx.productCollection.deleteMany();
+
+    const collectionIdByName = new Map<string, string>();
+    for (const collectionName of DRINK_COLLECTIONS) {
+      const collection = await tx.productCollection.create({
+        data: { name: collectionName },
+      });
+      collectionIdByName.set(collectionName, collection.id);
+    }
+
+    for (const sample of CATALOG_SEED_PRODUCTS) {
+      const slug = ensureUniqueSlug(slugify(sample.name), usedProductSlugs);
+
+      await tx.product.create({
+        data: {
+          name: sample.name,
+          slug,
+          description: sample.description,
+          note: null,
+          manualKkal: sample.manualKkal,
+          nutritionalInfo: sample.nutritionalInfo,
+          price: sample.price,
+          priceVariants: undefined,
+          measurementUnitId: unitByKey[sample.unit],
+          categories: {
+            create: sample.categorySlugs.map((categorySlug) => ({
+              categoryId: categoryIdBySlug.get(categorySlug)!,
+            })),
+          },
+        },
+      });
+    }
+
+    for (const drink of DRINK_SEED_PRODUCTS) {
+      const collectionId = collectionIdByName.get(drink.collectionName);
+      if (!collectionId) {
+        throw new Error(`Unknown drink collection: ${drink.collectionName}`);
+      }
+
+      const slug = ensureUniqueSlug(slugify(drink.name), usedProductSlugs);
+      const price =
+        drink.priceVariants && drink.priceVariants.length > 0
+          ? String(
+              Math.min(
+                ...drink.priceVariants.map((variant) => Number(variant.price)),
+              ),
+            )
+          : drink.price;
+
+      await tx.product.create({
+        data: {
+          name: drink.name,
+          slug,
+          description: drink.description ?? null,
+          note: drink.note ?? null,
+          manualKkal: drink.manualKkal,
+          nutritionalInfo: drink.nutritionalInfo,
+          price,
+          priceVariants: drink.priceVariants ?? undefined,
+          measurementUnitId: unitByKey.ml,
+          categories: {
+            create: [{ categoryId: drinksCategoryId }],
+          },
+          collections: {
+            create: [{ productCollectionId: collectionId }],
+          },
+        },
+      });
+    }
+  });
+
+  const productsForImages = await prisma.product.findMany({
+    where: { deletedAt: null },
+    select: {
+      id: true,
+      name: true,
+      categories: {
+        select: {
+          category: { select: { slug: true } },
+        },
+        take: 1,
+      },
+    },
+    orderBy: { name: 'asc' },
+  });
+
+  const imageStats = await attachImagesToProducts(prisma, {
+    uploaderUserId: seedUploader.id,
+    products: productsForImages.map((product) => ({
+      id: product.id,
+      name: product.name,
+      primaryCategorySlug: product.categories[0]?.category.slug ?? 'unknown',
+    })),
+  });
+
+  const counts = await prisma.productCategory.groupBy({
+    by: ['categoryId'],
+    _count: { productId: true },
+  });
+
+  const countByCategoryId = new Map(
+    counts.map((row) => [row.categoryId, row._count.productId]),
+  );
+
+  const dessertCategorySlugs = CATEGORIES.filter(
+    (category) => category.slug !== 'napitki',
+  ).map((category) => category.slug);
+
+  const underfilled = dessertCategorySlugs
+    .filter((slug) => {
+      const categoryId = categoryIdBySlug.get(slug);
+      const count = categoryId ? (countByCategoryId.get(categoryId) ?? 0) : 0;
+      return count < MIN_PRODUCTS_PER_CATEGORY;
+    })
+    .map((slug) => ({
+      slug,
+      count: countByCategoryId.get(categoryIdBySlug.get(slug)!) ?? 0,
+    }));
+
+  if (underfilled.length > 0) {
+    throw new Error(
+      `Seed integrity failed: categories below ${MIN_PRODUCTS_PER_CATEGORY} products: ${JSON.stringify(underfilled)}`,
+    );
+  }
+
+  console.log('Seed complete', {
+    dessertProducts: CATALOG_SEED_PRODUCTS.length,
+    drinkProducts: DRINK_SEED_PRODUCTS.length,
+    collections: DRINK_COLLECTIONS.length,
+    categories: CATEGORIES.length,
+    units: { kg: kg.symbol, piece: piece.symbol, ml: milliliter.symbol },
+    productsWithImages: imageStats.productsWithImages,
+    attachedImages: imageStats.attachedImages,
+  });
 }
 
 main()

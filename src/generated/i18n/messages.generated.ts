@@ -3,11 +3,13 @@
 import { mergeMessages } from '../../helpers/merge-messages'
 
 import en_common_json from '../../../messages/en/common.json'
+import en_components_image_gallery_json from '../../../messages/en/components/image-gallery.json'
 import en_pages_catalog_json from '../../../messages/en/pages/catalog.json'
 import en_pages_product_json from '../../../messages/en/pages/product.json'
 import en_ui_language_json from '../../../messages/en/ui/language.json'
 import en_ui_theme_json from '../../../messages/en/ui/theme.json'
 import ru_common_json from '../../../messages/ru/common.json'
+import ru_components_image_gallery_json from '../../../messages/ru/components/image-gallery.json'
 import ru_pages_catalog_json from '../../../messages/ru/pages/catalog.json'
 import ru_pages_product_json from '../../../messages/ru/pages/product.json'
 import ru_ui_language_json from '../../../messages/ru/ui/language.json'
@@ -24,6 +26,7 @@ const mergeAll = (parts: Messages[]): Messages =>
 export const messagesByLocale: Record<string, Messages> = {
 	en: mergeAll([
 		wrap(["common"], en_common_json),
+		wrap(["components","image-gallery"], en_components_image_gallery_json),
 		wrap(["pages","catalog"], en_pages_catalog_json),
 		wrap(["pages","product"], en_pages_product_json),
 		wrap(["ui","language"], en_ui_language_json),
@@ -31,6 +34,7 @@ export const messagesByLocale: Record<string, Messages> = {
 	]),
 	ru: mergeAll([
 		wrap(["common"], ru_common_json),
+		wrap(["components","image-gallery"], ru_components_image_gallery_json),
 		wrap(["pages","catalog"], ru_pages_catalog_json),
 		wrap(["pages","product"], ru_pages_product_json),
 		wrap(["ui","language"], ru_ui_language_json),

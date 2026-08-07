@@ -12,13 +12,15 @@ export class DeleteProductUseCase {
   async execute(
     input: IDeleteProductApplicationInput,
   ): Promise<{ success: true }> {
-    const existing = await this.productRepository.findById(input.productId);
+    const existing = await this.productRepository.findByIdOrSlug(
+      input.productIdOrSlug,
+    );
     if (!existing) {
-      throw new ProductNotFoundError(input.productId);
+      throw new ProductNotFoundError(input.productIdOrSlug);
     }
 
     await this.transactionManager.runInTransaction(async (scope) => {
-      await this.productRepository.softDelete(input.productId, scope);
+      await this.productRepository.softDelete(existing.id, scope);
     });
 
     return { success: true };

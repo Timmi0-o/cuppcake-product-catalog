@@ -1,0 +1,7 @@
+{
+  "openFullscreen": "Open fullscreen",
+  "closeFullscreen": "Close",
+  "previousImage": "Previous image",
+  "nextImage": "Next image",
+  "goToImage": "Image {index}"
+}

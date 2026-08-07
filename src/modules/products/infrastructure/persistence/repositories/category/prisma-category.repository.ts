@@ -15,6 +15,7 @@ function mapCategoryRow(row: Category): ICategoryEntity {
     name: row.name,
     slug: row.slug,
     sortOrder: row.sortOrder,
+    parentCategoryId: row.parentCategoryId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,
@@ -38,12 +39,20 @@ export class PrismaCategoryRepository implements ICategoryRepository {
       name: row.name,
       slug: row.slug,
       sortOrder: row.sortOrder,
+      parentCategoryId: row.parentCategoryId,
     }));
   }
 
   async findById(id: string): Promise<ICategoryEntity | null> {
     const row = await this.prisma.category.findFirst({
       where: { id, deletedAt: null },
+    });
+    return row ? mapCategoryRow(row) : null;
+  }
+
+  async findBySlug(slug: string): Promise<ICategoryEntity | null> {
+    const row = await this.prisma.category.findFirst({
+      where: { slug, deletedAt: null },
     });
     return row ? mapCategoryRow(row) : null;
   }
@@ -66,6 +75,7 @@ export class PrismaCategoryRepository implements ICategoryRepository {
           name: input.name,
           slug: input.slug,
           sortOrder: input.sortOrder ?? 0,
+          parentCategoryId: input.parentCategoryId ?? null,
         },
       });
       return mapCategoryRow(row);
