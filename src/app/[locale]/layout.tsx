@@ -1,5 +1,6 @@
 import { RootProviders } from '@/components/providers/root-providers'
 import { PreferencesBar } from '@/components/widgets/preferences-bar/preferences-bar'
+import { auth } from '@/configs/auth/auth'
 import { isAppLocale } from '@/constants/locales'
 import {
 	DEFAULT_THEME,
@@ -74,10 +75,11 @@ export default async function LocaleLayout({
 
 	setRequestLocale(locale)
 
-	const [messages, timeZone, initialTheme] = await Promise.all([
+	const [messages, timeZone, initialTheme, session] = await Promise.all([
 		getMessages({ locale }),
 		getTimeZone(),
 		resolveInitialTheme(),
+		auth(),
 	])
 
 	return (
@@ -97,6 +99,7 @@ export default async function LocaleLayout({
 					messages={messages}
 					timeZone={timeZone}
 					initialTheme={initialTheme}
+					session={session}
 				>
 					<main className='mx-auto w-full max-w-[1440px] flex-1 px-2 py-8 sm:px-6 sm:py-10'>
 						{children}

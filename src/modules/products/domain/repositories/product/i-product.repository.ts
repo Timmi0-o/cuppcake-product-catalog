@@ -23,6 +23,7 @@ export interface IProductRepository {
   findPublicByIdOrSlug(
     idOrSlug: string,
     options?: { includeImages?: boolean },
+    scope?: TransactionScope,
   ): Promise<IProductPublicEntity | null>;
   findMany(
     params: FindManyParams,

@@ -101,8 +101,12 @@ export class CreateProductUseCase {
       const product = await this.productRepository.findPublicByIdOrSlug(
         created.id,
         { includeImages: true },
+        scope,
       );
-      return product!;
+      if (!product) {
+        throw new Error(`Created product not found: ${created.id}`);
+      }
+      return product;
     });
   }
 }

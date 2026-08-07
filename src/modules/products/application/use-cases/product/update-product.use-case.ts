@@ -84,8 +84,12 @@ export class UpdateProductUseCase {
       const product = await this.productRepository.findPublicByIdOrSlug(
         existing.id,
         { includeImages: true },
+        scope,
       );
-      return product!;
+      if (!product) {
+        throw new ProductNotFoundError(existing.id);
+      }
+      return product;
     });
   }
 }

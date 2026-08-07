@@ -1,4 +1,5 @@
 import { getRequestHeaders } from '@/actions/utils/get-request-headers';
+import { ensureFreshSession } from '@/configs/auth/ensure-fresh-session';
 import type { IAppFetcher, TAppFetcherAuthMode } from './i-app-fetcher';
 
 export interface INextFetchRequestConfig {
@@ -36,10 +37,20 @@ export const productCatalogFetcher = async <
   isPublic = false,
   authMode,
 }: IAppFetcher<T>) => {
+  const resolvedAuthMode = resolveAuthMode(isPublic, authMode);
   const requestHeaders = await getRequestHeaders();
   const absoluteUrl = url.startsWith('http')
     ? url
     : `${requestHeaders.origin}${url}`;
+
+  const session =
+    resolvedAuthMode === 'none' ? null : await ensureFreshSession();
+
+  const accessToken = session?.accessToken;
+
+  const shouldAttachAuth =
+    resolvedAuthMode === 'required' ||
+    (resolvedAuthMode === 'optional' && Boolean(accessToken));
 
   let opts: RequestInit;
 
@@ -54,6 +65,9 @@ export const productCatalogFetcher = async <
       next: params.next,
       ...(stringifiedBody ? { body: stringifiedBody as BodyInit } : {}),
       headers: {
+        ...(shouldAttachAuth
+          ? { Authorization: `Bearer ${accessToken}` }
+          : {}),
         ...(params.headers || {}),
         ...(params.body ? { 'Content-Type': 'application/json' } : {}),
         ...requestHeaders,
@@ -66,6 +80,9 @@ export const productCatalogFetcher = async <
       next: params.next,
       body: params.body as BodyInit | null | undefined,
       headers: {
+        ...(shouldAttachAuth
+          ? { Authorization: `Bearer ${accessToken}` }
+          : {}),
         ...(params.headers || {}),
         ...requestHeaders,
       },

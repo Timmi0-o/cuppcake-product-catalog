@@ -119,7 +119,7 @@ function mapProductPublic(
 }
 
 async function loadProductImages(
-  prisma: PrismaClient,
+  prisma: Pick<PrismaClient, 'image'>,
   productId: string,
 ): Promise<IProductImagePublic[]> {
   const rows = await prisma.image.findMany({
@@ -289,8 +289,10 @@ export class PrismaProductRepository implements IProductRepository {
   async findPublicByIdOrSlug(
     idOrSlug: string,
     options?: { includeImages?: boolean },
+    scope?: TransactionScope,
   ): Promise<IProductPublicEntity | null> {
-    const row = await this.prisma.product.findFirst({
+    const client = this.client(scope);
+    const row = await client.product.findFirst({
       where: {
         deletedAt: null,
         OR: [{ id: idOrSlug }, { slug: idOrSlug }],
@@ -301,7 +303,7 @@ export class PrismaProductRepository implements IProductRepository {
       return null;
     }
     const images = options?.includeImages
-      ? await loadProductImages(this.prisma, row.id)
+      ? await loadProductImages(client, row.id)
       : undefined;
     return mapProductPublic(row as ProductWithRelations, images);
   }
